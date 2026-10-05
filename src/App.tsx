@@ -7,7 +7,6 @@ import { NerWorkbenchView } from './views/NerWorkbenchView';
 import { ComparisonView } from './views/ComparisonView';
 import { EvaluationMatrixView } from './views/EvaluationMatrixView';
 import { BiasAuditView } from './views/BiasAuditView';
-import { CodeScriptView } from './views/CodeScriptView';
 import { CorpusArticle, GroundTruthArticle } from './services/nlpEngine';
 
 // Default static imports for instant responsiveness
@@ -100,11 +99,6 @@ export const App: React.FC = () => {
 
           {currentPage === 'spaCy vs BERT comparison' && <ComparisonView />}
 
-          {currentPage === 'code.py & Datasets' && (
-            <CodeScriptView
-              onNavigateToEvaluation={() => setCurrentPage('Evaluation & Confusion Matrix')}
-            />
-          )}
         </main>
       </div>
     </div>

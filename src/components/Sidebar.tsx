@@ -1,15 +1,5 @@
 import React from 'react';
-import {
-  LayoutDashboard,
-  FileText,
-  Terminal,
-  Grid3X3,
-  GitCompare,
-  AlertTriangle,
-  FileCode,
-  Search,
-  Filter,
-} from 'lucide-react';
+import { LayoutDashboard, FileText, Terminal, Grid3x2 as Grid3X3, GitCompare, TriangleAlert as AlertTriangle, Search, ListFilter as Filter } from 'lucide-react';
 
 export type PageId =
   | 'Overview'
@@ -17,8 +7,7 @@ export type PageId =
   | 'NER workbench'
   | 'Evaluation & Confusion Matrix'
   | 'Bias, Error & Explainability'
-  | 'spaCy vs BERT comparison'
-  | 'code.py & Datasets';
+  | 'spaCy vs BERT comparison';
 
 interface SidebarProps {
   currentPage: PageId;
@@ -42,13 +31,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   totalArticles,
 }) => {
   const navItems: { id: PageId; label: string; icon: React.FC<any> }[] = [
-    { id: 'Overview', label: 'Overview & Corpus (1–7)', icon: LayoutDashboard },
+    { id: 'Overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'Article explorer', label: 'Article Explorer', icon: FileText },
     { id: 'NER workbench', label: 'NER Workbench (8–10)', icon: Terminal },
     { id: 'Evaluation & Confusion Matrix', label: 'Confusion Matrix & Metrics (11–15)', icon: Grid3X3 },
     { id: 'Bias, Error & Explainability', label: 'Bias & Error Audit (16–20)', icon: AlertTriangle },
     { id: 'spaCy vs BERT comparison', label: 'spaCy vs BERT Comparison', icon: GitCompare },
-    { id: 'code.py & Datasets', label: 'code.py & Datasets', icon: FileCode },
   ];
 
   return (
