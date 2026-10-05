@@ -379,12 +379,24 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                     const color = LABEL_COLORS[cm.className] || '#0d9488';
                     return (
                       <tr key={cm.className} className="hover:bg-slate-50/70">
-                        <td className="py-3 px-4 font-bold flex items-center gap-2">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: color }}
-                          />
-                          <span>{cm.className}</span>
+                        <td className="py-3 px-4 font-bold">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ backgroundColor: color }}
+                            />
+                            <span>{cm.className}</span>
+                          </div>
+                          {cm.className === 'CARDINAL' && (
+                            <div className="text-[10px] text-slate-400 font-normal ml-4.5">
+                              Count / Quantity ("How many?": 10, 50, 2,250)
+                            </div>
+                          )}
+                          {cm.className === 'ORDINAL' && (
+                            <div className="text-[10px] text-slate-400 font-normal ml-4.5">
+                              Rank / Order ("Which rank?": 10th, 12th, 1st)
+                            </div>
+                          )}
                         </td>
                         <td className="py-3 px-3 text-center font-mono font-semibold text-emerald-700">
                           {cm.tp}
