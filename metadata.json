@@ -1,0 +1,8 @@
+{
+  "name": "NER Studio Pro · News Intelligence & Model Analytics",
+  "description": "Enterprise Named Entity Recognition platform comparing spaCy and BERT architectures on multi-domain news corpora with ground-truth benchmarking and live REST API.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
