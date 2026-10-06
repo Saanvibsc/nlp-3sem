@@ -49,58 +49,72 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 text-slate-900 font-sans antialiased">
-      {/* Sidebar Navigation */}
-      <Sidebar
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#fdfdfc] text-[#1a1a18] font-sans antialiased">
+      {/* Top Bar Nav matching Variation 5 */}
+      <Header
         currentPage={currentPage}
         onSelectPage={page => setCurrentPage(page)}
-        categories={allCategories}
-        selectedCategories={selectedCategories}
-        onToggleCategory={handleToggleCategory}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        totalArticles={corpus.length}
+        totalArticles={filteredArticles.length}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-        <Header
+      {/* Main Layout (Sidebar + Content Area) */}
+      <div className="flex-1 flex h-full min-h-0 min-w-0 overflow-hidden">
+        {/* Sidebar Navigation */}
+        <Sidebar
           currentPage={currentPage}
-          totalArticles={filteredArticles.length}
+          onSelectPage={page => setCurrentPage(page)}
+          categories={allCategories}
+          selectedCategories={selectedCategories}
+          onToggleCategory={handleToggleCategory}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          totalArticles={corpus.length}
         />
 
-        <main className="flex-1 overflow-y-auto px-6 py-6 md:px-8 max-w-7xl w-full mx-auto">
-          {currentPage === 'Overview' && (
-            <OverviewView
-              articles={filteredArticles}
-              totalCorpus={corpus.length}
-              onNavigateToExplorer={() => setCurrentPage('Article explorer')}
-              onNavigateToWorkbench={handleSendToWorkbench}
-              onNavigateToEvaluation={() => setCurrentPage('Evaluation & Confusion Matrix')}
-            />
-          )}
+        {/* Content Area */}
+        <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-[#fdfdfc]">
+          <main className="flex-1 overflow-y-auto px-6 py-8 md:px-12 max-w-7xl w-full mx-auto">
+            {currentPage === 'Overview' && (
+              <OverviewView
+                articles={filteredArticles}
+                totalCorpus={corpus.length}
+                onNavigateToExplorer={() => setCurrentPage('Article explorer')}
+                onNavigateToWorkbench={handleSendToWorkbench}
+                onNavigateToEvaluation={() => setCurrentPage('Evaluation & Confusion Matrix')}
+              />
+            )}
 
-          {currentPage === 'Article explorer' && (
-            <ArticleExplorerView
-              articles={filteredArticles}
-              onSendToWorkbench={handleSendToWorkbench}
-            />
-          )}
+            {currentPage === 'Article explorer' && (
+              <ArticleExplorerView
+                articles={filteredArticles}
+                onSendToWorkbench={handleSendToWorkbench}
+              />
+            )}
 
-          {currentPage === 'NER workbench' && (
-            <NerWorkbenchView initialText={workbenchInitialText} />
-          )}
+            {currentPage === 'NER workbench' && (
+              <NerWorkbenchView initialText={workbenchInitialText} />
+            )}
 
-          {currentPage === 'Evaluation & Confusion Matrix' && (
-            <EvaluationMatrixView groundTruthData={groundTruth} />
-          )}
+            {currentPage === 'Evaluation & Confusion Matrix' && (
+              <EvaluationMatrixView groundTruthData={groundTruth} />
+            )}
 
-          {currentPage === 'Bias, Error & Explainability' && <BiasAuditView />}
+            {currentPage === 'Bias, Error & Explainability' && <BiasAuditView />}
 
-          {currentPage === 'spaCy vs BERT comparison' && <ComparisonView />}
-
-        </main>
+            {currentPage === 'spaCy vs BERT comparison' && <ComparisonView />}
+          </main>
+        </div>
       </div>
+
+      {/* Pinned Bottom Footer matching Variation 5 */}
+      <footer className="border-t border-[rgba(26,26,24,0.08)] flex items-center justify-between px-6 py-2.5 bg-[#f7f7f5] z-20 shrink-0 text-xs">
+        <span className="label opacity-60">NER Studio Pro · News Intelligence</span>
+        <span className="label hidden sm:inline opacity-60">OntoNotes 5.0 & CoNLL-2003 Benchmark Active</span>
+        <span className="label !opacity-80 flex items-center gap-1.5 text-[#1a1a18]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+          150 Articles Analyzed
+        </span>
+      </footer>
     </div>
   );
 };

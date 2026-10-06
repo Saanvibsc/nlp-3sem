@@ -18,6 +18,25 @@ export const LABEL_DEFINITIONS: Record<string, string> = {
   MISC: 'MISC: Miscellaneous named entities (e.g., subwords, academic domains)',
 };
 
+export const BRUTAL_LABEL_COLORS: Record<string, string> = {
+  ORG: '#d97706', // Warm Amber Accent
+  PER: '#1a1a18', // Deep Ink
+  PERSON: '#1a1a18',
+  LOC: '#0284c7', // Steel Blue
+  LOCATION: '#0284c7',
+  DATE: '#059669', // Emerald
+  MONEY: '#b45309', // Warm Ochre
+  CARDINAL: '#475569', // Slate
+  ORDINAL: '#c2410c', // Rust
+  PERCENT: '#0f766e', // Teal
+  PRODUCT: '#6d28d9', // Deep Purple
+  EVENT: '#be185d', // Crimson
+  WORK_OF_ART: '#4338ca', // Indigo
+  NORP: '#334155',
+  FAC: '#047857',
+  MISC: '#64748b',
+};
+
 interface EntityHighlighterProps {
   text: string;
   entities: Entity[];
@@ -31,7 +50,7 @@ export const EntityHighlighter: React.FC<EntityHighlighterProps> = ({
 }) => {
   if (!entities || entities.length === 0) {
     return (
-      <div className="bg-white border border-slate-200 rounded-xl p-5 leading-relaxed text-sm text-slate-800 shadow-sm max-h-96 overflow-y-auto whitespace-pre-wrap">
+      <div className="bg-white border border-[rgba(26,26,24,0.08)] rounded-xl p-6 leading-relaxed text-base text-[#1a1a18] shadow-xs max-h-96 overflow-y-auto whitespace-pre-wrap font-sans">
         {text}
       </div>
     );
@@ -62,7 +81,7 @@ export const EntityHighlighter: React.FC<EntityHighlighterProps> = ({
     }
 
     const entText = text.slice(ent.start, ent.end);
-    const color = LABEL_COLORS[ent.label] || '#0d9488';
+    const color = BRUTAL_LABEL_COLORS[ent.label] || LABEL_COLORS[ent.label] || '#d97706';
     const confPercentage = Math.round(ent.score * 100);
     const definition = LABEL_DEFINITIONS[ent.label] || `${ent.label} Entity`;
 
@@ -70,17 +89,14 @@ export const EntityHighlighter: React.FC<EntityHighlighterProps> = ({
       <span
         key={`ent-${idx}-${ent.start}`}
         title={definition}
-        className="inline-flex items-center gap-1.5 px-2 py-0.5 my-0.5 mx-1 rounded-md text-xs font-medium bg-slate-100 border border-slate-300 shadow-2xs hover:bg-slate-200 transition-colors cursor-help"
-        style={{ borderLeftWidth: '3px', borderLeftColor: color }}
+        className="inline-flex items-baseline font-medium px-2 py-0.5 my-0.5 mx-0.5 rounded text-white text-sm shadow-xs transition-opacity hover:opacity-90 cursor-help"
+        style={{ backgroundColor: color }}
       >
-        <span className="text-slate-900 font-semibold">{entText}</span>
-        <span
-          className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded text-white"
-          style={{ backgroundColor: color }}
-        >
+        <span className="font-sans text-sm">{entText}</span>
+        <span className="font-mono text-[0.625rem] ml-1.5 pl-1.5 border-l border-white/40 text-white/90 uppercase tracking-wider font-medium">
           {ent.label}
           {showConfidence && ent.model === 'BERT' && (
-            <span className="opacity-90 ml-1">· {confPercentage}%</span>
+            <span className="opacity-90 ml-0.5">·{confPercentage}%</span>
           )}
         </span>
       </span>
@@ -98,7 +114,7 @@ export const EntityHighlighter: React.FC<EntityHighlighterProps> = ({
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 leading-loose text-sm text-slate-800 shadow-sm max-h-96 overflow-y-auto whitespace-pre-wrap">
+    <div className="bg-white border border-[rgba(26,26,24,0.08)] rounded-xl p-6 leading-relaxed text-base text-[#1a1a18] shadow-xs max-h-96 overflow-y-auto whitespace-pre-wrap font-sans">
       {parts}
     </div>
   );

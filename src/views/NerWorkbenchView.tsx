@@ -267,32 +267,33 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" /> Interactive Information Extraction & NER Engine
-          </span>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Named Entity Recognition Workbench
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Extract high-value named entities across news, finance, startups, and tech using <b>Gemini AI</b>, <b>spaCy</b>, or <b>BERT</b>.
-          </p>
-        </div>
+    <div className="space-y-8 pt-2 pb-12">
+      {/* Hero Section matching Variation 5 */}
+      <div className="max-w-3xl">
+        <span className="label !opacity-100 text-[#d97706] flex items-center gap-1.5 font-medium mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]" />
+          Interactive Information Extraction Engine
+        </span>
+        <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-[#1a1a18] leading-[1.05] tracking-tight mb-3">
+          NER Workbench
+        </h1>
+        <p className="font-serif text-base sm:text-lg text-[#1a1a18]/70 max-w-2xl leading-relaxed mb-6">
+          Extract named entities, corporate leadership, dates, and fiscal valuations across business and tech news using <b>spaCy</b>, <b>BERT</b>, and <b>Automaton</b> engines.
+        </p>
       </div>
 
-      {/* Control Panel */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Main Input Container matching Variation 5 specification */}
+      <div className="card p-6 md:p-8 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-6">
+        {/* Top Controls Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pb-5 border-b border-[rgba(26,26,24,0.08)]">
           <div className="md:col-span-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Quick Load Sample News / Tech Story:
+            <label className="label block mb-1.5 text-[#1a1a18]">
+              Select Sample Story
             </label>
             <select
               value={selectedSample}
               onChange={e => handleSelectSample(e.target.value)}
-              className="w-full text-xs font-medium border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800"
+              className="w-full text-xs font-mono border border-[rgba(26,26,24,0.12)] rounded-lg px-3 py-2 bg-white text-[#1a1a18] focus:outline-none focus:border-[#d97706]"
             >
               <option value="-- Custom Input --">-- Custom Input --</option>
               {Object.keys(SAMPLE_STORIES).map(key => (
@@ -304,33 +305,21 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-              <span>Active Extraction Engine:</span>
-              <span className="text-[10px] text-emerald-700 font-mono font-bold">
-                {modelChoice === 'AC Automaton' ? 'Aho-Corasick O(n+m)' : modelChoice === 'AC+AI Ensemble' ? 'AC + Neural Hybrid' : modelChoice}
-              </span>
+            <label className="label block mb-1.5 text-[#1a1a18]">
+              Active Engine: {modelChoice}
             </label>
-            <div className="grid grid-cols-3 sm:grid-cols-6 rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-xs font-semibold gap-0.5">
+            <div className="grid grid-cols-3 sm:grid-cols-6 border border-[rgba(26,26,24,0.08)] rounded-lg bg-[#f7f7f5] p-1 gap-1">
               {(['Gemini AI', 'AC Automaton', 'AC+AI Ensemble', 'spaCy', 'BERT', 'Dual'] as const).map(m => (
                 <button
                   key={m}
                   onClick={() => handleModelChange(m)}
-                  className={`py-1.5 px-1.5 rounded-md transition-all text-center flex items-center justify-center gap-1 ${
+                  className={`py-1.5 px-1 font-mono text-[10px] rounded transition-all text-center flex items-center justify-center cursor-pointer ${
                     modelChoice === m
-                      ? m === 'Gemini AI'
-                        ? 'bg-purple-700 text-white shadow-xs font-bold'
-                        : m === 'AC Automaton'
-                        ? 'bg-sky-700 text-white shadow-xs font-bold'
-                        : m === 'AC+AI Ensemble'
-                        ? 'bg-indigo-700 text-white shadow-xs font-bold'
-                        : 'bg-emerald-700 text-white shadow-xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
+                      : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
                   }`}
                 >
-                  {m === 'Gemini AI' && <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />}
-                  {m === 'AC Automaton' && <Network className="w-3 h-3 text-sky-300 shrink-0" />}
-                  {m === 'AC+AI Ensemble' && <Cpu className="w-3 h-3 text-indigo-300 shrink-0" />}
-                  <span className="truncate text-[11px]">{m}</span>
+                  <span className="truncate">{m === 'AC Automaton' ? 'AC' : m === 'AC+AI Ensemble' ? 'Hybrid' : m}</span>
                 </button>
               ))}
             </div>
@@ -338,47 +327,45 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
         </div>
 
         {/* Dense Word Recognition Mode Switch */}
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-3.5 bg-[#f7f7f5] border border-[rgba(26,26,24,0.08)] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${denseMode ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'}`}>
+            <div className={`w-8 h-8 rounded border flex items-center justify-center shrink-0 ${denseMode ? 'bg-[#d97706] text-white border-[#d97706]' : 'bg-white text-[#1a1a18] border-[rgba(26,26,24,0.1)]'}`}>
               <Zap className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-900">
-                  Dense Word & Semantic Recognition Mode
+                <span className="text-xs font-mono font-medium text-[#1a1a18]">
+                  Dense Semantic Recognition Mode
                 </span>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${denseMode ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                  {denseMode ? 'ACTIVE · AI-EQUIVALENT' : 'STANDARD NER'}
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${denseMode ? 'bg-[#d97706]/10 text-[#d97706] border-[#d97706]/30 font-medium' : 'bg-white text-[#1a1a18]/60 border-[rgba(26,26,24,0.08)]'}`}>
+                  {denseMode ? 'ACTIVE' : 'STANDARD'}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-[#1a1a18]/60 font-sans mt-0.5">
                 {denseMode
-                  ? 'Dense Mode ON: Identifies core domain concepts, food dishes, technical terms, executive titles, and keywords across the text.'
-                  : 'Standard Mode: Isolates only named entities (Person, Organization, Location, Date, Money, Number).'}
+                  ? 'Identifies core domain concepts, culinary terms, technical domains, executive titles, and keywords across the text.'
+                  : 'Isolates standard named entities: Person, Organization, Location, Date, Money, Number.'}
               </p>
             </div>
           </div>
 
           <button
             onClick={handleToggleDenseMode}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 py-1.5 text-xs font-mono rounded transition-all flex items-center gap-1.5 shrink-0 border cursor-pointer ${
               denseMode
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs'
-                : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
+                ? 'bg-[#1a1a18] text-white border-[#1a1a18]'
+                : 'bg-white text-[#1a1a18] border-[rgba(26,26,24,0.12)] hover:bg-[#f7f7f5]'
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            {denseMode ? 'Disable Dense Mode' : 'Enable Dense Word Recognition'}
+            {denseMode ? 'Disable Dense Mode' : 'Enable Dense Mode'}
           </button>
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-            <span>Input Text for Entity Analysis:</span>
-            <span className="text-[11px] text-slate-400 font-normal">
-              Type anything about Zomato, news, tech startups, or press releases
-            </span>
+        {/* Textarea matching Variation 5 */}
+        <div className="space-y-2">
+          <label className="label block text-[#1a1a18]">
+            Input Text for Entity Analysis
           </label>
           <textarea
             rows={5}
@@ -388,40 +375,35 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
               setSelectedSample('-- Custom Input --');
             }}
             placeholder="Type or paste any news article, announcement, or startup press release (e.g. Zomato, Blinkit, OpenAI)..."
-            className="w-full text-sm font-normal border border-slate-200 rounded-lg p-3 focus:ring-emerald-500 focus:border-emerald-500 bg-white leading-relaxed text-slate-900"
+            className="w-full text-base font-sans text-[#1a1a18] leading-relaxed p-4 border border-[rgba(26,26,24,0.12)] rounded-lg bg-white focus:outline-none focus:border-[#d97706]"
           />
         </div>
 
-        <div className="flex items-center justify-between pt-1">
+        {/* Run Extraction Button */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
           <button
             onClick={handleExtract}
             disabled={!inputText.trim() || isLoadingAi}
-            className={`px-5 py-2.5 font-bold text-xs rounded-lg shadow-sm transition-colors flex items-center gap-2 text-white ${
-              modelChoice === 'Gemini AI' || modelChoice === 'AC+AI Ensemble'
-                ? 'bg-purple-700 hover:bg-purple-800 disabled:opacity-50'
-                : modelChoice === 'AC Automaton'
-                ? 'bg-sky-700 hover:bg-sky-800 disabled:opacity-50'
-                : 'bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50'
-            }`}
+            className="btn btn-primary py-2.5 px-5 text-xs font-mono uppercase flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {isLoadingAi ? (
               <>
                 <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                Running Neural Recognition...
+                Processing Neural Extraction...
               </>
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                Run {denseMode ? 'Dense Word Recognition' : 'Named Entity Recognition'} ({modelChoice})
+                Extract Named Entities ({modelChoice})
               </>
             )}
           </button>
 
           {latencyMs !== null && (
-            <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-              <Clock className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="label !opacity-80 flex items-center gap-2 text-[#1a1a18] tabular-nums font-mono">
+              <Clock className="w-3.5 h-3.5 text-[#d97706]" />
               <span>
-                Engine: <b>{modelChoice}</b> · Latency: <b>{latencyMs} ms</b> {modelChoice === 'AC Automaton' && '⚡ (Linear DFA)'}
+                Engine: <b className="font-medium">{modelChoice}</b> · Latency: <b className="font-medium">{latencyMs} ms</b>
               </span>
             </div>
           )}
@@ -431,63 +413,61 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
       {/* Results View */}
       {hasRun && (
         <div className="space-y-6">
-          {/* ======================================================== */}
-          {/* ENTITY TYPE VISIBILITY FILTER COMPONENT                 */}
-          {/* ======================================================== */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm space-y-3">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          {/* ENTITY TYPE VISIBILITY FILTER COMPONENT */}
+          <div className="card p-5 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[rgba(26,26,24,0.08)]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100/70 text-emerald-800 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded bg-[#f7f7f5] border border-[rgba(26,26,24,0.08)] text-[#d97706] flex items-center justify-center font-bold">
                   <Filter className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                    Entity Visibility Filter Component
-                    <span className="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                      {filteredResults.length} of {activeResults.length} visible
+                  <h4 className="font-serif font-medium text-base text-[#1a1a18] flex items-center gap-2">
+                    Entity Visibility Filter
+                    <span className="text-[10px] font-mono bg-[#f7f7f5] text-[#1a1a18]/70 border border-[rgba(26,26,24,0.08)] px-2 py-0.5 rounded">
+                      {filteredResults.length} / {activeResults.length} Visible
                     </span>
                   </h4>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-xs text-[#1a1a18]/60 font-sans">
                     Click any entity badge below to toggle its highlight on or off in the processed text.
                   </p>
                 </div>
               </div>
 
               {/* Quick preset action buttons */}
-              <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
                 <button
                   onClick={selectAllTypes}
-                  className="px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold transition-colors flex items-center gap-1"
+                  className="px-2.5 py-1 text-xs rounded border border-[rgba(26,26,24,0.1)] bg-white text-[#1a1a18] hover:bg-[#f7f7f5] transition-colors flex items-center gap-1 cursor-pointer"
                 >
-                  <Eye className="w-3 h-3 text-slate-500" /> Select All
+                  <Eye className="w-3 h-3 text-[#1a1a18]/70" /> Select All
                 </button>
                 <button
                   onClick={clearAllTypes}
-                  className="px-2.5 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold transition-colors flex items-center gap-1"
+                  className="px-2.5 py-1 text-xs rounded border border-[rgba(26,26,24,0.1)] bg-white text-[#1a1a18] hover:bg-[#f7f7f5] transition-colors flex items-center gap-1 cursor-pointer"
                 >
-                  <EyeOff className="w-3 h-3 text-slate-500" /> Hide All
+                  <EyeOff className="w-3 h-3 text-[#1a1a18]/70" /> Hide All
                 </button>
                 <button
                   onClick={() => setQuickFilter(['LOCATION', 'DATE'])}
-                  className="px-2.5 py-1 rounded-md border border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold transition-colors"
+                  className="px-2.5 py-1 text-xs rounded border border-[rgba(26,26,24,0.1)] bg-white text-[#1a1a18] hover:bg-[#f7f7f5] transition-colors cursor-pointer"
                 >
                   Locations & Dates
                 </button>
                 <button
                   onClick={() => setQuickFilter(['PERSON', 'ORG'])}
-                  className="px-2.5 py-1 rounded-md border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold transition-colors"
+                  className="px-2.5 py-1 text-xs rounded border border-[rgba(26,26,24,0.1)] bg-white text-[#1a1a18] hover:bg-[#f7f7f5] transition-colors cursor-pointer"
                 >
                   People & Orgs
                 </button>
                 <button
                   onClick={() => setQuickFilter(['CARDINAL', 'ORDINAL', 'MONEY', 'PERCENT'])}
-                  className="px-2.5 py-1 rounded-md border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold transition-colors"
+                  className="px-2.5 py-1 text-xs rounded border border-[rgba(26,26,24,0.1)] bg-white text-[#1a1a18] hover:bg-[#f7f7f5] transition-colors cursor-pointer"
                 >
                   Numbers & Money
                 </button>
                 <button
                   onClick={() => setQuickFilter(['ORG', 'PERSON', 'PRODUCT', 'LOCATION'])}
-                  className="px-2.5 py-1 rounded-md border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold transition-colors"
+                  className="px-2.5 py-1 text-xs rounded border border-[rgba(26,26,24,0.1)] bg-white text-[#1a1a18] hover:bg-[#f7f7f5] transition-colors cursor-pointer"
                 >
                   Brands & Products
                 </button>
@@ -499,45 +479,30 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
               {ALL_ENTITY_TYPES.map(type => {
                 const isVisible = visibleEntityTypes.includes(type);
                 const count = entityTypeCounts[type] || 0;
-                const color = LABEL_COLORS[type] || '#0d9488';
-
-                let typeTooltip = isVisible
-                  ? `Click to hide ${type} entities in text and table`
-                  : `Click to show ${type} entities in text and table`;
-                if (type === 'CARDINAL') {
-                  typeTooltip += ' · CARDINAL = Counts/Quantities (answers "How many?")';
-                } else if (type === 'ORDINAL') {
-                  typeTooltip += ' · ORDINAL = Position/Rank/Order in sequence (answers "Which rank?")';
-                }
+                const color = LABEL_COLORS[type] || '#d97706';
 
                 return (
                   <button
                     key={type}
                     onClick={() => toggleEntityType(type)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border shadow-2xs select-none ${
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 font-mono text-xs rounded transition-all border cursor-pointer select-none ${
                       isVisible
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'bg-slate-100/60 text-slate-400 border-slate-200 opacity-50 line-through'
+                        ? 'bg-white text-[#1a1a18] border-[rgba(26,26,24,0.12)] shadow-2xs'
+                        : 'bg-[#f7f7f5] text-[#1a1a18]/40 border-[rgba(26,26,24,0.06)] opacity-60 line-through'
                     }`}
-                    style={
-                      isVisible
-                        ? { borderColor: color, borderLeftWidth: '4px' }
-                        : { borderLeftWidth: '1px' }
-                    }
-                    title={typeTooltip}
                   >
                     <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: isVisible ? color : '#cbd5e1' }}
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: isVisible ? color : '#e2e8f0' }}
                     />
                     <span>{type}</span>
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                      className={`text-[10px] px-1 font-mono rounded ${
                         count > 0
                           ? isVisible
-                            ? 'bg-slate-900 text-white'
-                            : 'bg-slate-300 text-slate-600'
-                          : 'bg-slate-100 text-slate-400'
+                            ? 'bg-[#f7f7f5] text-[#1a1a18]'
+                            : 'bg-slate-200 text-[#1a1a18]/60'
+                          : 'text-[#1a1a18]/40'
                       }`}
                     >
                       {count}
@@ -549,40 +514,40 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
           </div>
 
           {/* Visual Annotation */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+          <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[rgba(26,26,24,0.08)]">
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  In-Context Visual Entity Annotation ({modelChoice})
+                <h3 className="font-serif text-lg font-medium text-[#1a1a18]">
+                  Annotated Document Spans ({modelChoice})
                 </h3>
                 {visibleEntityTypes.length < ALL_ENTITY_TYPES.length && (
-                  <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">
-                    Filters Active: {filteredResults.length} / {activeResults.length} Shown
+                  <span className="text-[10px] font-mono bg-[#f7f7f5] text-[#1a1a18]/70 border border-[rgba(26,26,24,0.08)] px-2 py-0.5 rounded">
+                    {filteredResults.length} / {activeResults.length} Shown
                   </span>
                 )}
               </div>
 
               {modelChoice === 'Dual' && (
-                <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-xs font-semibold">
+                <div className="flex border border-[rgba(26,26,24,0.08)] rounded-lg bg-[#f7f7f5] p-0.5">
                   <button
                     onClick={() => setActiveTab('spaCy')}
-                    className={`px-3 py-1 rounded-md transition-all ${
+                    className={`px-3 py-1 font-mono text-xs rounded transition-all cursor-pointer ${
                       activeTab === 'spaCy'
-                        ? 'bg-emerald-700 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
+                        : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
                     }`}
                   >
-                    spaCy Output ({spacyResults.filter(e => visibleEntityTypes.includes(e.label)).length})
+                    spaCy ({spacyResults.filter(e => visibleEntityTypes.includes(e.label)).length})
                   </button>
                   <button
                     onClick={() => setActiveTab('BERT')}
-                    className={`px-3 py-1 rounded-md transition-all ${
+                    className={`px-3 py-1 font-mono text-xs rounded transition-all cursor-pointer ${
                       activeTab === 'BERT'
-                        ? 'bg-emerald-700 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
+                        : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
                     }`}
                   >
-                    BERT Output ({bertResults.filter(e => visibleEntityTypes.includes(e.label)).length})
+                    BERT ({bertResults.filter(e => visibleEntityTypes.includes(e.label)).length})
                   </button>
                 </div>
               )}
@@ -604,50 +569,50 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
           {/* Structured Records & Mix */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Table */}
-            <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="lg:col-span-2 card p-5 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-[rgba(26,26,24,0.08)]">
                 <div>
-                  <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <h4 className="font-serif text-base font-medium text-[#1a1a18] flex items-center gap-2">
                     Structured Entity Records
-                    <span className="text-xs font-mono font-normal text-slate-500">
-                      ({filteredResults.length} of {activeResults.length} visible)
+                    <span className="label font-normal !opacity-70">
+                      ({filteredResults.length} / {activeResults.length} visible)
                     </span>
                   </h4>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#1a1a18]/60 font-sans">
                     Detailed token span boundaries, confidence metrics, and classifications.
                   </p>
                 </div>
                 {filteredResults.length > 0 && (
                   <button
                     onClick={handleExportCSV}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition-colors"
+                    className="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
                   >
-                    <Download className="w-3.5 h-3.5" /> Export Filtered CSV
+                    <Download className="w-3.5 h-3.5" /> Export CSV
                   </button>
                 )}
               </div>
 
               {filteredResults.length === 0 ? (
-                <div className="text-xs text-slate-500 p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200 space-y-2">
-                  <p className="font-bold text-slate-700">No matching entities are currently visible.</p>
+                <div className="text-xs font-mono text-[#1a1a18]/60 p-8 text-center bg-[#f7f7f5] border border-dashed border-[rgba(26,26,24,0.15)] rounded-lg space-y-2">
+                  <p className="font-medium text-[#1a1a18]">No matching entities are currently visible.</p>
                   {activeResults.length > 0 ? (
-                    <p className="text-[11px] text-slate-500">
-                      {activeResults.length} entities were detected but hidden by your filter settings.{' '}
+                    <p className="text-[11px]">
+                      {activeResults.length} entities detected but hidden by filters.{' '}
                       <button
                         onClick={selectAllTypes}
-                        className="text-emerald-700 font-bold underline hover:text-emerald-800"
+                        className="text-[#d97706] font-medium underline cursor-pointer"
                       >
-                        Click here to select all entity types.
+                        Reset and show all entity types
                       </button>
                     </p>
                   ) : (
-                    <p className="text-[11px] text-slate-500">No named entities detected in the provided text.</p>
+                    <p className="text-[11px]">No named entities detected in text.</p>
                   )}
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                <div className="overflow-x-auto border border-[rgba(26,26,24,0.08)] rounded-lg">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className="bg-[#f7f7f5] border-b border-[rgba(26,26,24,0.08)] text-[#1a1a18]/60 uppercase text-[11px] font-medium">
                       <tr>
                         <th className="py-2.5 px-3">Entity</th>
                         <th className="py-2.5 px-3">Class</th>
@@ -657,42 +622,42 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
                         <th className="py-2.5 px-3">Model</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[rgba(26,26,24,0.06)] bg-white">
                       {filteredResults.map((ent, idx) => {
-                        const color = LABEL_COLORS[ent.label] || '#0d9488';
+                        const color = LABEL_COLORS[ent.label] || '#d97706';
                         return (
-                          <tr key={idx} className="hover:bg-slate-50/70">
-                            <td className="py-2.5 px-3 font-semibold text-slate-900">
+                          <tr key={idx} className="hover:bg-[#f7f7f5]/50">
+                            <td className="py-2.5 px-3 font-sans font-medium text-[#1a1a18]">
                               {ent.text}
                             </td>
                             <td className="py-2.5 px-3">
                               <span
-                                className="px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase"
+                                className="px-2 py-0.5 rounded text-[10px] font-medium text-white uppercase"
                                 style={{ backgroundColor: color }}
                               >
                                 {ent.label}
                               </span>
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-slate-500">
+                            <td className="py-2.5 px-3 text-right tabular-nums text-[#1a1a18]/60">
                               {ent.start}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-slate-500">
+                            <td className="py-2.5 px-3 text-right tabular-nums text-[#1a1a18]/60">
                               {ent.end}
                             </td>
                             <td className="py-2.5 px-3">
                               <div className="flex items-center gap-2">
-                                <div className="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                <div className="w-16 bg-[#f7f7f5] border border-[rgba(26,26,24,0.08)] rounded h-1.5 overflow-hidden">
                                   <div
-                                    className="bg-emerald-600 h-1.5 rounded-full"
+                                    className="bg-[#d97706] h-full"
                                     style={{ width: `${Math.round(ent.score * 100)}%` }}
                                   />
                                 </div>
-                                <span className="font-mono text-[11px] text-slate-600">
+                                <span className="tabular-nums text-[11px] text-[#1a1a18]">
                                   {(ent.score).toFixed(2)}
                                 </span>
                               </div>
                             </td>
-                            <td className="py-2.5 px-3 text-slate-600 font-medium">
+                            <td className="py-2.5 px-3 text-[#1a1a18]">
                               {ent.model}
                             </td>
                           </tr>
@@ -705,24 +670,24 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
             </div>
 
             {/* Entity Mix Bar Chart */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+            <div className="card p-5 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl flex flex-col justify-between">
               <div>
-                <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2 mb-1">
-                  <BarChart2 className="w-4 h-4 text-emerald-600" /> Entity Mix Distribution
+                <h4 className="font-serif text-base font-medium text-[#1a1a18] flex items-center gap-2 mb-1">
+                  <BarChart2 className="w-4 h-4 text-[#d97706]" /> Entity Mix Distribution
                 </h4>
-                <p className="text-xs text-slate-500 mb-4">
+                <p className="text-xs text-[#1a1a18]/60 font-sans mb-4">
                   Distribution of detected entity classes in current selection.
                 </p>
 
                 {sortedTypes.length === 0 ? (
-                  <div className="text-xs text-slate-400 p-4 text-center">
+                  <div className="text-xs font-mono text-[#1a1a18]/40 p-4 text-center">
                     No distribution available.
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {sortedTypes.map(([type, count]) => {
                       const pct = Math.round((count / maxTypeCount) * 100);
-                      const color = LABEL_COLORS[type] || '#0d9488';
+                      const color = LABEL_COLORS[type] || '#d97706';
                       const isVisible = visibleEntityTypes.includes(type);
 
                       return (
@@ -734,19 +699,19 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
                           }`}
                           title={`Click to ${isVisible ? 'hide' : 'show'} ${type}`}
                         >
-                          <div className="flex justify-between text-xs font-semibold text-slate-700">
+                          <div className="flex justify-between text-xs font-mono text-[#1a1a18]">
                             <span className="flex items-center gap-1.5">
                               <span
-                                className="w-2.5 h-2.5 rounded-full"
+                                className="w-2 h-2 rounded-full"
                                 style={{ backgroundColor: color }}
                               />
                               <span className={isVisible ? '' : 'line-through'}>{type}</span>
                             </span>
-                            <span className="text-slate-500 font-mono">{count}</span>
+                            <span className="tabular-nums text-[#d97706] font-medium">{count}</span>
                           </div>
-                          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                          <div className="w-full bg-[#f7f7f5] rounded h-1.5 overflow-hidden">
                             <div
-                              className="h-2 rounded-full transition-all duration-500"
+                              className="h-full transition-all duration-300"
                               style={{ width: `${pct}%`, backgroundColor: color }}
                             />
                           </div>
@@ -757,115 +722,112 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
                 )}
               </div>
 
-              <div className="pt-4 mt-4 border-t border-slate-100 text-[11px] text-slate-400 flex items-center gap-1.5">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>Standardized via CoNLL universal schema mappings. Hover any badge for class definitions.</span>
+              <div className="pt-4 mt-4 border-t border-[rgba(26,26,24,0.08)] text-[11px] font-mono text-[#1a1a18]/60 flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-[#d97706] shrink-0" />
+                <span>OntoNotes 5.0 and CoNLL-2003 standardized mappings.</span>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* NLP Concepts Guide: What is NER, Cardinal vs Ordinal */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-2xs space-y-4 mt-6">
-        <div className="border-b border-slate-100 pb-3">
-          <div className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 inline-block px-2 py-0.5 rounded">
+      {/* NLP Concepts Guide */}
+      <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4 mt-8">
+        <div className="border-b border-[rgba(26,26,24,0.08)] pb-3">
+          <span className="label !opacity-100 text-[#d97706] font-medium">
             NLP Theory & Taxonomy Reference
-          </div>
-          <h3 className="text-base font-extrabold text-slate-900 mt-1">
+          </span>
+          <h3 className="font-serif text-xl text-[#1a1a18] font-normal mt-1">
             Understanding Named Entity Recognition (NER), Cardinal & Ordinal Classes
           </h3>
-          <p className="text-xs text-slate-500">
-            Why the model only identifies specific words in a paragraph and how numeric entity categories are classified.
+          <p className="text-xs text-[#1a1a18]/60 font-sans mt-0.5">
+            How token boundary extraction operates and how numeric entity categories are classified.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          {/* Card 1: Why only a few words are identified + Better Name */}
-          <div className="p-4 rounded-xl border border-emerald-100 bg-emerald-50/30 space-y-2">
-            <div className="font-bold text-slate-900 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-              Why only a few words in a paragraph?
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs font-sans">
+          {/* Card 1 */}
+          <div className="p-4 rounded-lg border border-[rgba(26,26,24,0.08)] bg-[#f7f7f5] space-y-2">
+            <div className="font-serif font-medium text-sm text-[#1a1a18] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+              Why are only specific words tagged?
             </div>
-            <p className="text-slate-600 leading-relaxed text-[11px]">
-              This model is <b>not a raw word counter or grammar tagger</b>. It is an <b>Information Extraction system</b> specifically performing <b>Named Entity Recognition (NER)</b>.
+            <p className="text-[#1a1a18]/70 leading-relaxed text-[11px]">
+              NER is an <b>Information Extraction pipeline</b>, not a syntax tree generator. It intentionally ignores grammatical noise (<i>"the", "in", "and", "was"</i>) to isolate <b>high-value entities</b>: executives, corporations, municipalities, and fiscal numbers.
             </p>
-            <p className="text-slate-600 leading-relaxed text-[11px]">
-              NER intentionally ignores grammatical noise (<i>"the", "in", "and", "was", "for"</i>) and isolates <b>high-value real-world entities</b>: people, companies, cities, dates, monetary values, and quantities.
-            </p>
-            <div className="pt-2 border-t border-emerald-100 text-[11px]">
-              <span className="font-bold text-slate-800">Industry-Standard Names:</span>
-              <ul className="list-disc list-inside text-slate-600 mt-1 space-y-0.5">
-                <li><b>Dense Named Entity Recognizer (Dense NER)</b></li>
-                <li><b>Key Information Extraction (KIE) Pipeline</b></li>
-                <li><b>Semantic Entity & Term Extractor</b></li>
+            <div className="pt-2 border-t border-[rgba(26,26,24,0.08)] text-[11px] font-mono">
+              <span className="font-medium text-[#1a1a18]">Industry Pipeline Terms:</span>
+              <ul className="list-disc list-inside text-[#1a1a18]/60 mt-1 space-y-0.5">
+                <li>Key Information Extraction (KIE)</li>
+                <li>Dense Named Entity Recognizer</li>
+                <li>Token Classification Head</li>
               </ul>
             </div>
           </div>
 
-          {/* Card 2: What is Ordinal and Cardinal? */}
-          <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50/30 space-y-2">
-            <div className="font-bold text-slate-900 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
-              Difference Between Cardinal & Ordinal
+          {/* Card 2 */}
+          <div className="p-4 rounded-lg border border-[rgba(26,26,24,0.08)] bg-[#f7f7f5] space-y-2">
+            <div className="font-serif font-medium text-sm text-[#1a1a18] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1a1a18]"></span>
+              Cardinal vs. Ordinal Distinction
             </div>
 
             <div className="space-y-2 text-[11px]">
-              <div className="p-2 rounded-lg bg-white border border-indigo-200 shadow-2xs">
-                <div className="font-extrabold text-indigo-900 flex items-center justify-between">
-                  <span>1. CARDINAL (Count / Quantity)</span>
-                  <span className="text-[9px] text-indigo-600 uppercase font-mono">Answers: "How Many?"</span>
+              <div className="p-2.5 bg-white rounded border border-[rgba(26,26,24,0.08)]">
+                <div className="font-mono text-[#1a1a18] flex items-center justify-between">
+                  <span className="font-medium">1. CARDINAL (Count)</span>
+                  <span className="text-[9px] uppercase font-mono text-[#d97706]">"How Many?"</span>
                 </div>
-                <p className="text-slate-600 mt-0.5">
-                  Numerals representing absolute counts or amounts.
+                <p className="text-[#1a1a18]/60 mt-0.5">
+                  Absolute counts, amounts, or integer tallies.
                 </p>
-                <div className="mt-1 font-mono text-[10px] text-indigo-800 bg-indigo-50 px-1.5 py-0.5 rounded">
+                <div className="mt-1 font-mono text-[10px] text-[#1a1a18]/80 bg-[#f7f7f5] px-1.5 py-0.5 rounded">
                   Examples: 15,000, 10, 50, 18 crore, 2,250
                 </div>
               </div>
 
-              <div className="p-2 rounded-lg bg-white border border-cyan-200 shadow-2xs">
-                <div className="font-extrabold text-cyan-900 flex items-center justify-between">
-                  <span>2. ORDINAL (Rank / Order)</span>
-                  <span className="text-[9px] text-cyan-700 uppercase font-mono">Answers: "Which Rank?"</span>
+              <div className="p-2.5 bg-white rounded border border-[rgba(26,26,24,0.08)]">
+                <div className="font-mono text-[#1a1a18] flex items-center justify-between">
+                  <span className="font-medium">2. ORDINAL (Rank)</span>
+                  <span className="text-[9px] uppercase font-mono text-[#d97706]">"Which Rank?"</span>
                 </div>
-                <p className="text-slate-600 mt-0.5">
-                  Numerals indicating position in a sequence (with suffixes <i>-st, -nd, -rd, -th</i>).
+                <p className="text-[#1a1a18]/60 mt-0.5">
+                  Sequence positions with suffix morphemes (<i>-st, -nd, -rd, -th</i>).
                 </p>
-                <div className="mt-1 font-mono text-[10px] text-cyan-800 bg-cyan-50 px-1.5 py-0.5 rounded">
+                <div className="mt-1 font-mono text-[10px] text-[#1a1a18]/80 bg-[#f7f7f5] px-1.5 py-0.5 rounded">
                   Examples: 10th, 12th, 1st place, second round
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Card 3: Aho-Corasick (AC) Automaton & AI Equivalence */}
-          <div className="p-4 rounded-xl border border-sky-100 bg-sky-50/30 space-y-2">
-            <div className="font-bold text-slate-900 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-sky-600"></span>
-              Aho-Corasick (AC) & AI-Equivalent Accuracy
+          {/* Card 3 */}
+          <div className="p-4 rounded-lg border border-[rgba(26,26,24,0.08)] bg-[#f7f7f5] space-y-2">
+            <div className="font-serif font-medium text-sm text-[#1a1a18] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+              Aho-Corasick Automaton Linear DFA
             </div>
-            <p className="text-slate-600 leading-relaxed text-[11px]">
-              <b>Aho-Corasick (AC)</b> is an exact string-searching automaton that compiles a dictionary of thousands of keywords into a <b>Trie with failure transitions</b> (DFA).
+            <p className="text-[#1a1a18]/70 leading-relaxed text-[11px]">
+              Exact string-searching state machine compiling dictionaries of entity keywords into a <b>Trie with failure transitions</b>.
             </p>
             <div className="space-y-1.5 text-[11px]">
-              <div className="p-2 rounded-lg bg-white border border-sky-200 shadow-2xs">
-                <div className="font-extrabold text-sky-950 flex items-center justify-between">
-                  <span>Deterministic Speed: O(n + m)</span>
-                  <span className="text-[9px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded">~0.4 ms</span>
+              <div className="p-2.5 bg-white rounded border border-[rgba(26,26,24,0.08)]">
+                <div className="font-mono text-[#1a1a18] flex items-center justify-between">
+                  <span className="font-medium">Speed: O(n + m)</span>
+                  <span className="text-[9px] font-mono text-[#d97706] font-medium">~0.4 ms</span>
                 </div>
-                <p className="text-slate-600 mt-0.5 text-[10px]">
-                  Scans the entire text in a single linear pass. Zero network delay, zero rate-limiting, and zero hallucinations.
+                <p className="text-[#1a1a18]/60 mt-0.5 text-[10px]">
+                  Scans entire corpus in a single pass without latency or external tokens.
                 </p>
               </div>
 
-              <div className="p-2 rounded-lg bg-white border border-purple-200 shadow-2xs">
-                <div className="font-extrabold text-purple-950 flex items-center justify-between">
-                  <span>How It Reaches AI Equivalence</span>
-                  <span className="text-[9px] font-mono text-purple-700 font-bold bg-purple-50 px-1.5 py-0.2 rounded">Dense Mode</span>
+              <div className="p-2.5 bg-white rounded border border-[rgba(26,26,24,0.08)]">
+                <div className="font-mono text-[#1a1a18] flex items-center justify-between">
+                  <span className="font-medium">Accuracy Assurance</span>
+                  <span className="text-[9px] font-mono text-[#d97706] font-medium">Ensemble</span>
                 </div>
-                <p className="text-slate-600 mt-0.5 text-[10px]">
-                  By combining AC multi-keyword DFA with dynamic numerical/ordinal patterns and neural semantic verification, word recognition achieves <b>99%+ recall</b> matching Gemini AI models.
+                <p className="text-[#1a1a18]/60 mt-0.5 text-[10px]">
+                  Combines keyword DFA with regex numerical parsers to guarantee high precision on gold entities.
                 </p>
               </div>
             </div>

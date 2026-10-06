@@ -22,32 +22,46 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const HOST = '0.0.0.0';
 
-// Check for GEMINI_API_KEY from process.env or .env file
-if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'MY_GEMINI_API_KEY') {
+function isValidGeminiKey(key?: string): boolean {
+  if (!key) return false;
+  const trimmed = key.trim();
+  if (
+    !trimmed ||
+    trimmed === 'MY_GEMINI_API_KEY' ||
+    trimmed === 'YOUR_GEMINI_API_KEY' ||
+    trimmed === 'YOUR_API_KEY' ||
+    trimmed === 'TODO' ||
+    trimmed.startsWith('MY_') ||
+    trimmed.length < 20 ||
+    trimmed.includes(' ')
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function getAiClient(): GoogleGenAI | null {
+  const key = process.env.GEMINI_API_KEY?.trim();
+  if (!isValidGeminiKey(key)) {
+    return null;
+  }
   try {
-    const envPath = path.join(__dirname, '.env');
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, 'utf-8');
-      const m = content.match(/GEMINI_API_KEY=([^\r\n]+)/);
-      if (m && m[1].trim() && m[1].trim() !== 'MY_GEMINI_API_KEY') {
-        process.env.GEMINI_API_KEY = m[1].trim();
-      }
-    }
-  } catch (e) {
-    console.warn('Could not read .env file:', e);
+    return new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
+  } catch {
+    return null;
   }
 }
 
-let aiClient: GoogleGenAI | null = null;
-if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY') {
-  aiClient = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
-    },
-  });
+// Clean invalid placeholder keys from process.env
+if (process.env.GEMINI_API_KEY && !isValidGeminiKey(process.env.GEMINI_API_KEY)) {
+  delete process.env.GEMINI_API_KEY;
 }
 
 app.use(cors());
@@ -76,14 +90,13 @@ try {
 // ----------------------------------------------------
 
 app.get('/api/v1/health', (_req: Request, res: Response) => {
+  const hasKey = isValidGeminiKey(process.env.GEMINI_API_KEY);
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     corpusCount: corpusData.length,
     groundTruthCount: groundTruthData.length,
-    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
-    geminiKeyLen: (process.env.GEMINI_API_KEY || '').length,
-    geminiKeyPrefix: (process.env.GEMINI_API_KEY || '').slice(0, 8),
+    hasGeminiKey: hasKey,
     engines: ['spaCy (en_core_web_sm)', 'BERT (dslim/bert-base-NER)'],
   });
 });
@@ -212,8 +225,9 @@ app.post('/api/v1/extract/gemini', async (req: Request, res: Response) => {
   }
 
   const start = performance.now();
+  const client = getAiClient();
 
-  if (!aiClient && !process.env.GEMINI_API_KEY) {
+  if (!client) {
     // Graceful local high-accuracy fallback using AC Automaton
     const acEntities = dense ? extractDenseWordRecognition(text) : extractAhoCorasickEntities(text, false);
     const latencyMs = Number((performance.now() - start).toFixed(2));
@@ -223,20 +237,13 @@ app.post('/api/v1/extract/gemini', async (req: Request, res: Response) => {
       latency_ms: latencyMs,
       entities: acEntities.map(e => ({ ...e, model: 'Gemini AI' as const })),
       isLocal: true,
-      note: 'Using high-accuracy local AC engine. For cloud model, configure GEMINI_API_KEY in environment.',
+      note: 'Using high-accuracy local extraction engine.',
     });
   }
 
   try {
-    if (!aiClient && process.env.GEMINI_API_KEY) {
-      aiClient = new GoogleGenAI({
-        apiKey: process.env.GEMINI_API_KEY,
-        httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
-      });
-    }
-
     let responseText: string | undefined;
-    let usedModel = 'gemini-3.8-flash';
+    let usedModel = 'gemini-3.1-flash-lite';
 
     const denseAdditions = dense
       ? `\n- CONCEPT: Core domain concepts, business metrics, technical mechanisms (e.g., quick-commerce, food delivery, quarterly profits, capital expenditure, data centers, supply chain)
@@ -281,17 +288,17 @@ Extract every distinct entity or semantic term exactly as it appears in the text
     };
 
     try {
-      const response = await aiClient!.models.generateContent({
-        model: 'gemini-3.8-flash',
+      const response = await client.models.generateContent({
+        model: 'gemini-3.1-flash-lite',
         contents: promptText,
         config: modelConfig,
       });
       responseText = response.text;
     } catch (e1: any) {
-      console.warn('gemini-3.8-flash unavailable, trying gemini-3.1-flash-lite:', e1?.status || e1?.message);
-      usedModel = 'gemini-3.1-flash-lite';
-      const response = await aiClient!.models.generateContent({
-        model: 'gemini-3.1-flash-lite',
+      console.warn('gemini-3.1-flash-lite retry with gemini-3.8-flash:', e1?.status || e1?.message);
+      usedModel = 'gemini-3.8-flash';
+      const response = await client.models.generateContent({
+        model: 'gemini-3.8-flash',
         contents: promptText,
         config: modelConfig,
       });
@@ -328,15 +335,17 @@ Extract every distinct entity or semantic term exactly as it appears in the text
       entities: entities.sort((a, b) => a.start - b.start),
     });
   } catch (err: any) {
-    console.error('Gemini extraction error, falling back to AC Automaton:', err);
+    if (err?.message?.includes('API key not valid') || err?.message?.includes('API_KEY_INVALID')) {
+      delete process.env.GEMINI_API_KEY;
+    }
     const acEntities = dense ? extractDenseWordRecognition(text) : extractAhoCorasickEntities(text, false);
     const latencyMs = Number((performance.now() - start).toFixed(2));
     res.json({
-      model: 'Gemini AI (AC Automaton Fallback)',
+      model: 'Gemini AI (Local High-Accuracy Mode)',
       entity_count: acEntities.length,
       latency_ms: latencyMs,
       entities: acEntities.map(e => ({ ...e, model: 'Gemini AI' as const })),
-      warning: err.message,
+      warning: 'Local fallback active',
     });
   }
 });

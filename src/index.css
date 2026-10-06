@@ -1,26 +1,257 @@
 @import "tailwindcss";
 
+:root {
+  --bg: #fdfdfc;
+  --ink: #1a1a18;
+  --accent: #d97706; /* Warm Amber */
+  --border: rgba(26, 26, 24, 0.08);
+  --card-bg: #ffffff;
+  --sidebar-bg: #f7f7f5;
+}
+
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  code, pre, kbd {
-    font-family: 'JetBrains Mono', monospace;
+  
+  h1, .font-serif, .font-newsreader {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  
+  h2, h3 {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .font-display {
+    font-family: 'Newsreader', Georgia, serif;
+  }
+  
+  .font-mono-code, code, pre, kbd, .label, .font-geist-mono {
+    font-family: 'Geist Mono', monospace;
   }
 }
 
-/* Custom scrollbars for clean code and preview areas */
+::selection {
+  background: #e5e7eb;
+  color: var(--ink);
+}
+
+/* Typography & Labels */
+.label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  opacity: 0.5;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.btn {
+  padding: 0.625rem 1.125rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-family: 'Geist', sans-serif;
+  background: var(--ink);
+  color: #ffffff;
+  border: 1px solid var(--ink);
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn-primary, .btn-brutal {
+  background: var(--ink);
+  color: white;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover, .btn-brutal:hover {
+  opacity: 0.9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+  background: var(--sidebar-bg);
+  border-color: rgba(26, 26, 24, 0.15);
+}
+
+/* Cards & Layout Grid */
+.card {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  border-color: rgba(26, 26, 24, 0.2);
+}
+
+.card-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 1rem;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+}
+
+/* Stats & Metrics */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  padding: 1rem;
+  border-left: 1px solid var(--border);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-family: 'Geist Mono', monospace;
+  color: var(--ink);
+}
+
+/* Progress & Bars */
+.bar-group {
+  margin-bottom: 1rem;
+}
+
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.bar-track {
+  height: 4px;
+  background: var(--sidebar-bg);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--ink);
+  opacity: 0.8;
+}
+
+.bar-fill.accent {
+  background: var(--accent);
+  opacity: 1;
+}
+
+/* Badges & Pills */
+.badge {
+  background: var(--sidebar-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+
+.badge-accent {
+  background: rgba(217, 119, 6, 0.1);
+  color: #d97706;
+  border-color: rgba(217, 119, 6, 0.2);
+}
+
+/* Articles */
+.article-card {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.article-card:hover {
+  border-color: rgba(26, 26, 24, 0.2);
+}
+
+.article-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.input-container {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* Subtle clean scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: rgba(26, 26, 24, 0.15);
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(26, 26, 24, 0.3);
 }
