@@ -40,12 +40,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   totalArticles,
 }) => {
   const navItems: { id: PageId; label: string; icon: React.FC<any> }[] = [
-    { id: 'NER workbench', label: 'NER Workbench', icon: Terminal },
     { id: 'Overview', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'NER workbench', label: 'NER Workbench', icon: Terminal },
     { id: 'Article explorer', label: 'Article Explorer', icon: FileText },
+    { id: 'spaCy vs BERT comparison', label: 'spaCy vs BERT Comparison', icon: GitCompare },
     { id: 'Evaluation & Confusion Matrix', label: 'Confusion Matrix & Metrics', icon: Grid3X3 },
     { id: 'Bias, Error & Explainability', label: 'Bias & Error Audit', icon: AlertTriangle },
-    { id: 'spaCy vs BERT comparison', label: 'spaCy vs BERT Comparison', icon: GitCompare },
   ];
 
   return (

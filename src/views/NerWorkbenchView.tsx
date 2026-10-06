@@ -75,8 +75,10 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
     initialText || SAMPLE_STORIES['Zomato & Blinkit (Food Delivery & Quick Commerce)']
   );
   const [modelChoice, setModelChoice] = useState<
-    'Gemini AI' | 'AC Automaton' | 'AC+AI Ensemble' | 'spaCy' | 'BERT' | 'Dual'
-  >('Gemini AI');
+    'spaCy' | 'BERT' | 'Dual' | 'Gemini AI' | 'AC Automaton'
+  >('Dual');
+  const [dualDisplayMode, setDualDisplayMode] = useState<'side-by-side' | 'tabbed'>('side-by-side');
+  const [dualTableFilter, setDualTableFilter] = useState<'all' | 'both' | 'spacy-only' | 'bert-only'>('all');
   const [denseMode, setDenseMode] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'spaCy' | 'BERT'>('spaCy');
   const [spacyResults, setSpacyResults] = useState<Entity[]>([]);
@@ -119,7 +121,7 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
 
     let currentGemini = geminiResults;
 
-    if (choice === 'Gemini AI' || choice === 'AC+AI Ensemble') {
+    if (choice === 'Gemini AI') {
       setIsLoadingAi(true);
       try {
         const res = await fetch('/api/v1/extract/gemini', {
@@ -200,10 +202,10 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
   };
 
   const handleModelChange = (
-    m: 'Gemini AI' | 'AC Automaton' | 'AC+AI Ensemble' | 'spaCy' | 'BERT' | 'Dual'
+    m: 'spaCy' | 'BERT' | 'Dual' | 'Gemini AI' | 'AC Automaton'
   ) => {
     setModelChoice(m);
-    if ((m === 'Gemini AI' || m === 'AC+AI Ensemble') && geminiResults.length === 0 && inputText.trim()) {
+    if (m === 'Gemini AI' && geminiResults.length === 0 && inputText.trim()) {
       runExtraction(inputText, m, denseMode);
     }
   };
@@ -220,21 +222,80 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
     runExtraction(inputText, modelChoice, denseMode);
   };
 
+  const spacyFiltered = spacyResults.filter(e => visibleEntityTypes.includes(e.label));
+  const bertFiltered = bertResults.filter(e => visibleEntityTypes.includes(e.label));
+
+  // Cross-model Dual analysis: compare spaCy & BERT directly
+  const dualRecords = React.useMemo(() => {
+    const list: Array<Entity & { detectedBy: 'Both' | 'spaCy' | 'BERT'; partnerEntity?: Entity }> = [];
+    const matchedBertIndices = new Set<number>();
+
+    for (const s of spacyFiltered) {
+      const bIdx = bertFiltered.findIndex((b, idx) => {
+        if (matchedBertIndices.has(idx)) return false;
+        const textMatch = b.text.toLowerCase().trim() === s.text.toLowerCase().trim();
+        const spanOverlap = Math.max(s.start, b.start) < Math.min(s.end, b.end);
+        return textMatch || spanOverlap;
+      });
+
+      if (bIdx !== -1) {
+        matchedBertIndices.add(bIdx);
+        list.push({
+          ...s,
+          model: 'Dual (spaCy + BERT)' as any,
+          detectedBy: 'Both',
+          partnerEntity: bertFiltered[bIdx],
+        });
+      } else {
+        list.push({
+          ...s,
+          model: 'spaCy',
+          detectedBy: 'spaCy',
+        });
+      }
+    }
+
+    bertFiltered.forEach((b, idx) => {
+      if (!matchedBertIndices.has(idx)) {
+        list.push({
+          ...b,
+          model: 'BERT',
+          detectedBy: 'BERT',
+        });
+      }
+    });
+
+    return list.sort((a, b) => a.start - b.start);
+  }, [spacyFiltered, bertFiltered]);
+
+  const consensusCount = dualRecords.filter(r => r.detectedBy === 'Both').length;
+  const spacyOnlyCount = dualRecords.filter(r => r.detectedBy === 'spaCy').length;
+  const bertOnlyCount = dualRecords.filter(r => r.detectedBy === 'BERT').length;
+  const totalUniqueDual = dualRecords.length;
+  const agreementRate = totalUniqueDual > 0 ? Math.round((consensusCount / totalUniqueDual) * 100) : 100;
+
   const activeResults =
-    modelChoice === 'AC Automaton'
-      ? acResults
-      : modelChoice === 'AC+AI Ensemble'
-      ? ensembleResults
+    modelChoice === 'spaCy'
+      ? spacyResults
       : modelChoice === 'BERT'
       ? bertResults
-      : modelChoice === 'Gemini AI'
-      ? geminiResults
-      : modelChoice === 'Dual' && activeTab === 'BERT'
-      ? bertResults
-      : spacyResults;
+      : modelChoice === 'Dual'
+      ? dualRecords
+      : modelChoice === 'AC Automaton'
+      ? acResults
+      : geminiResults;
 
-  // Filtered by user's entity type visibility selections
-  const filteredResults = activeResults.filter(e => visibleEntityTypes.includes(e.label));
+  // Filtered by user's entity type visibility selections and dual filter
+  const filteredResults =
+    modelChoice === 'Dual'
+      ? dualTableFilter === 'both'
+        ? dualRecords.filter(r => r.detectedBy === 'Both')
+        : dualTableFilter === 'spacy-only'
+        ? dualRecords.filter(r => r.detectedBy === 'spaCy')
+        : dualTableFilter === 'bert-only'
+        ? dualRecords.filter(r => r.detectedBy === 'BERT')
+        : dualRecords
+      : activeResults.filter(e => visibleEntityTypes.includes(e.label));
 
   // Calculate entity counts for mix chart and filter badges
   const entityTypeCounts: Record<string, number> = {};
@@ -278,7 +339,7 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
           NER Workbench
         </h1>
         <p className="font-serif text-base sm:text-lg text-[#1a1a18]/70 max-w-2xl leading-relaxed mb-6">
-          Extract named entities, corporate leadership, dates, and fiscal valuations across business and tech news using <b>spaCy</b>, <b>BERT</b>, and <b>Automaton</b> engines.
+          Extract named entities, corporate leadership, dates, and fiscal valuations across business and tech news using <b>spaCy</b>, <b>BERT</b>, and <b>Dual</b> (spaCy + BERT) comparison.
         </p>
       </div>
 
@@ -305,23 +366,58 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
           </div>
 
           <div>
-            <label className="label block mb-1.5 text-[#1a1a18]">
-              Active Engine: {modelChoice}
-            </label>
-            <div className="grid grid-cols-3 sm:grid-cols-6 border border-[rgba(26,26,24,0.08)] rounded-lg bg-[#f7f7f5] p-1 gap-1">
-              {(['Gemini AI', 'AC Automaton', 'AC+AI Ensemble', 'spaCy', 'BERT', 'Dual'] as const).map(m => (
-                <button
-                  key={m}
-                  onClick={() => handleModelChange(m)}
-                  className={`py-1.5 px-1 font-mono text-[10px] rounded transition-all text-center flex items-center justify-center cursor-pointer ${
-                    modelChoice === m
-                      ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
-                      : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
-                  }`}
-                >
-                  <span className="truncate">{m === 'AC Automaton' ? 'AC' : m === 'AC+AI Ensemble' ? 'Hybrid' : m}</span>
-                </button>
-              ))}
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="label text-[#1a1a18]">
+                Active Engine
+              </label>
+              <span className="text-[11px] font-mono text-[#d97706] font-semibold">
+                {modelChoice === 'Dual' ? 'Dual (spaCy + BERT)' : modelChoice}
+              </span>
+            </div>
+
+            {/* Clean, wide 3-option engine selector: spaCy, BERT, Dual */}
+            <div className="grid grid-cols-3 border border-[rgba(26,26,24,0.1)] rounded-lg bg-[#f7f7f5] p-1 gap-1">
+              <button
+                type="button"
+                onClick={() => handleModelChange('spaCy')}
+                className={`py-2 px-2.5 font-mono text-xs rounded transition-all text-center flex items-center justify-center cursor-pointer ${
+                  modelChoice === 'spaCy'
+                    ? 'bg-white text-[#1a1a18] font-semibold shadow-xs border border-[rgba(26,26,24,0.1)]'
+                    : 'text-[#1a1a18]/70 hover:text-[#1a1a18] hover:bg-black/[0.02]'
+                }`}
+              >
+                <span>spaCy</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleModelChange('BERT')}
+                className={`py-2 px-2.5 font-mono text-xs rounded transition-all text-center flex items-center justify-center cursor-pointer ${
+                  modelChoice === 'BERT'
+                    ? 'bg-white text-[#1a1a18] font-semibold shadow-xs border border-[rgba(26,26,24,0.1)]'
+                    : 'text-[#1a1a18]/70 hover:text-[#1a1a18] hover:bg-black/[0.02]'
+                }`}
+              >
+                <span>BERT</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleModelChange('Dual')}
+                className={`py-2 px-2.5 font-mono text-xs rounded transition-all text-center flex items-center justify-center cursor-pointer ${
+                  modelChoice === 'Dual'
+                    ? 'bg-white text-[#1a1a18] font-semibold shadow-xs border border-[rgba(26,26,24,0.1)]'
+                    : 'text-[#1a1a18]/70 hover:text-[#1a1a18] hover:bg-black/[0.02]'
+                }`}
+              >
+                <span>Dual</span>
+              </button>
+            </div>
+
+            <div className="mt-1 flex items-center justify-between text-[10px] font-mono text-[#1a1a18]/50 px-0.5">
+              <span>spaCy · Statistical</span>
+              <span>BERT · Transformer</span>
+              <span className="text-[#d97706] font-medium">spaCy & BERT</span>
             </div>
           </div>
         </div>
@@ -394,7 +490,7 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                Extract Named Entities ({modelChoice})
+                Extract Named Entities ({modelChoice === 'Dual' ? 'Dual: spaCy + BERT' : modelChoice})
               </>
             )}
           </button>
@@ -403,7 +499,7 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
             <div className="label !opacity-80 flex items-center gap-2 text-[#1a1a18] tabular-nums font-mono">
               <Clock className="w-3.5 h-3.5 text-[#d97706]" />
               <span>
-                Engine: <b className="font-medium">{modelChoice}</b> · Latency: <b className="font-medium">{latencyMs} ms</b>
+                Engine: <b className="font-medium">{modelChoice === 'Dual' ? 'Dual (spaCy + BERT)' : modelChoice}</b> · Latency: <b className="font-medium">{latencyMs} ms</b>
               </span>
             </div>
           )}
@@ -513,58 +609,177 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
             </div>
           </div>
 
-          {/* Visual Annotation */}
-          <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[rgba(26,26,24,0.08)]">
-              <div className="flex items-center gap-2">
-                <h3 className="font-serif text-lg font-medium text-[#1a1a18]">
-                  Annotated Document Spans ({modelChoice})
-                </h3>
-                {visibleEntityTypes.length < ALL_ENTITY_TYPES.length && (
-                  <span className="text-[10px] font-mono bg-[#f7f7f5] text-[#1a1a18]/70 border border-[rgba(26,26,24,0.08)] px-2 py-0.5 rounded">
-                    {filteredResults.length} / {activeResults.length} Shown
-                  </span>
-                )}
+          {/* Visual Annotation Section */}
+          {modelChoice === 'Dual' ? (
+            <div className="space-y-4">
+              {/* Dual Analysis Comparison Header */}
+              <div className="p-4 bg-[#f7f7f5] border border-[rgba(26,26,24,0.08)] rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-serif font-medium text-base text-[#1a1a18]">
+                      Dual Model Analysis (spaCy & BERT)
+                    </span>
+                    <span className="text-[11px] font-mono bg-[#d97706]/10 text-[#d97706] border border-[#d97706]/30 px-2 py-0.5 rounded-full font-medium">
+                      {agreementRate}% Overlap Agreement
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#1a1a18]/65 font-sans">
+                    Simultaneous inference comparing spaCy's rule & transition-based pipeline with BERT's contextual transformer.
+                  </p>
+                </div>
+
+                {/* View Layout Switcher */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="label !text-[10px] hidden sm:inline">View:</span>
+                  <div className="flex border border-[rgba(26,26,24,0.1)] rounded-lg bg-white p-0.5 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setDualDisplayMode('side-by-side')}
+                      className={`px-3 py-1 font-mono text-xs rounded transition-all cursor-pointer ${
+                        dualDisplayMode === 'side-by-side'
+                          ? 'bg-[#1a1a18] text-white font-medium'
+                          : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
+                      }`}
+                    >
+                      Side-by-Side
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDualDisplayMode('tabbed')}
+                      className={`px-3 py-1 font-mono text-xs rounded transition-all cursor-pointer ${
+                        dualDisplayMode === 'tabbed'
+                          ? 'bg-[#1a1a18] text-white font-medium'
+                          : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
+                      }`}
+                    >
+                      Tabbed View
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {modelChoice === 'Dual' && (
-                <div className="flex border border-[rgba(26,26,24,0.08)] rounded-lg bg-[#f7f7f5] p-0.5">
-                  <button
-                    onClick={() => setActiveTab('spaCy')}
-                    className={`px-3 py-1 font-mono text-xs rounded transition-all cursor-pointer ${
-                      activeTab === 'spaCy'
-                        ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
-                        : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
-                    }`}
-                  >
-                    spaCy ({spacyResults.filter(e => visibleEntityTypes.includes(e.label)).length})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('BERT')}
-                    className={`px-3 py-1 font-mono text-xs rounded transition-all cursor-pointer ${
-                      activeTab === 'BERT'
-                        ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
-                        : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
-                    }`}
-                  >
-                    BERT ({bertResults.filter(e => visibleEntityTypes.includes(e.label)).length})
-                  </button>
+              {/* Dual Model Summary Metrics */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 bg-white border border-[rgba(26,26,24,0.08)] rounded-lg">
+                  <span className="label block text-[10px] text-[#1a1a18]/60 mb-0.5">spaCy Entities</span>
+                  <span className="font-mono text-xl font-medium text-[#1a1a18]">{spacyFiltered.length}</span>
+                  <span className="block text-[10px] text-[#1a1a18]/50 mt-0.5 font-mono">en_core_web_sm</span>
+                </div>
+                <div className="p-3 bg-white border border-[rgba(26,26,24,0.08)] rounded-lg">
+                  <span className="label block text-[10px] text-[#1a1a18]/60 mb-0.5">BERT Entities</span>
+                  <span className="font-mono text-xl font-medium text-[#1a1a18]">{bertFiltered.length}</span>
+                  <span className="block text-[10px] text-[#1a1a18]/50 mt-0.5 font-mono">dslim/bert-base-NER</span>
+                </div>
+                <div className="p-3 bg-white border border-[rgba(26,26,24,0.08)] rounded-lg">
+                  <span className="label block text-[10px] text-[#1a1a18]/60 mb-0.5">Both Agreed</span>
+                  <span className="font-mono text-xl font-medium text-[#059669]">{consensusCount}</span>
+                  <span className="block text-[10px] text-[#059669]/70 mt-0.5 font-mono">Consensus entities</span>
+                </div>
+                <div className="p-3 bg-white border border-[rgba(26,26,24,0.08)] rounded-lg">
+                  <span className="label block text-[10px] text-[#1a1a18]/60 mb-0.5">Discrepancies</span>
+                  <span className="font-mono text-xl font-medium text-[#d97706]">{spacyOnlyCount + bertOnlyCount}</span>
+                  <span className="block text-[10px] text-[#d97706]/70 mt-0.5 font-mono">{spacyOnlyCount} spaCy / {bertOnlyCount} BERT</span>
+                </div>
+              </div>
+
+              {/* Highlighting Display */}
+              {dualDisplayMode === 'side-by-side' ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {/* Left Column: spaCy */}
+                  <div className="card p-5 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-[rgba(26,26,24,0.08)]">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1]" />
+                        <h4 className="font-serif font-medium text-base text-[#1a1a18]">
+                          spaCy (en_core_web_sm)
+                        </h4>
+                      </div>
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#f7f7f5] text-[#1a1a18] border border-[rgba(26,26,24,0.08)]">
+                        {spacyFiltered.length} Spans
+                      </span>
+                    </div>
+                    <EntityHighlighter text={inputText} entities={spacyFiltered} showConfidence={false} />
+                  </div>
+
+                  {/* Right Column: BERT */}
+                  <div className="card p-5 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-[rgba(26,26,24,0.08)]">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#0d9488]" />
+                        <h4 className="font-serif font-medium text-base text-[#1a1a18]">
+                          BERT (dslim/bert-base-NER)
+                        </h4>
+                      </div>
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#f7f7f5] text-[#1a1a18] border border-[rgba(26,26,24,0.08)]">
+                        {bertFiltered.length} Spans
+                      </span>
+                    </div>
+                    <EntityHighlighter text={inputText} entities={bertFiltered} showConfidence={true} />
+                  </div>
+                </div>
+              ) : (
+                /* Tabbed View */
+                <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-[rgba(26,26,24,0.08)]">
+                    <h3 className="font-serif text-lg font-medium text-[#1a1a18]">
+                      Annotated Document Spans
+                    </h3>
+                    <div className="flex border border-[rgba(26,26,24,0.08)] rounded-lg bg-[#f7f7f5] p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('spaCy')}
+                        className={`px-3 py-1 font-mono text-xs rounded transition-all cursor-pointer ${
+                          activeTab === 'spaCy'
+                            ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
+                            : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
+                        }`}
+                      >
+                        spaCy ({spacyFiltered.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('BERT')}
+                        className={`px-3 py-1 font-mono text-xs rounded transition-all cursor-pointer ${
+                          activeTab === 'BERT'
+                            ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
+                            : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
+                        }`}
+                      >
+                        BERT ({bertFiltered.length})
+                      </button>
+                    </div>
+                  </div>
+                  <EntityHighlighter
+                    text={inputText}
+                    entities={activeTab === 'spaCy' ? spacyFiltered : bertFiltered}
+                    showConfidence={activeTab === 'BERT'}
+                  />
                 </div>
               )}
             </div>
+          ) : (
+            /* Single Engine Visual Annotation */
+            <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[rgba(26,26,24,0.08)]">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif text-lg font-medium text-[#1a1a18]">
+                    Annotated Document Spans ({modelChoice})
+                  </h3>
+                  {visibleEntityTypes.length < ALL_ENTITY_TYPES.length && (
+                    <span className="text-[10px] font-mono bg-[#f7f7f5] text-[#1a1a18]/70 border border-[rgba(26,26,24,0.08)] px-2 py-0.5 rounded">
+                      {filteredResults.length} / {activeResults.length} Shown
+                    </span>
+                  )}
+                </div>
+              </div>
 
-            <EntityHighlighter
-              text={inputText}
-              entities={
-                modelChoice === 'Dual'
-                  ? activeTab === 'spaCy'
-                    ? spacyResults.filter(e => visibleEntityTypes.includes(e.label))
-                    : bertResults.filter(e => visibleEntityTypes.includes(e.label))
-                  : filteredResults
-              }
-              showConfidence={modelChoice !== 'spaCy'}
-            />
-          </div>
+              <EntityHighlighter
+                text={inputText}
+                entities={filteredResults}
+                showConfidence={modelChoice !== 'spaCy'}
+              />
+            </div>
+          )}
 
           {/* Structured Records & Mix */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -591,6 +806,57 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
                   </button>
                 )}
               </div>
+
+              {/* Dual Mode Table Sub-filters */}
+              {modelChoice === 'Dual' && (
+                <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-[rgba(26,26,24,0.06)] text-xs font-mono">
+                  <span className="text-[#1a1a18]/60 mr-1 text-[11px]">Filter Models:</span>
+                  <button
+                    type="button"
+                    onClick={() => setDualTableFilter('all')}
+                    className={`px-2.5 py-1 rounded border transition-all cursor-pointer ${
+                      dualTableFilter === 'all'
+                        ? 'bg-[#1a1a18] text-white border-[#1a1a18] font-medium'
+                        : 'bg-white text-[#1a1a18]/70 border-[rgba(26,26,24,0.1)] hover:bg-[#f7f7f5]'
+                    }`}
+                  >
+                    All Records ({totalUniqueDual})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDualTableFilter('both')}
+                    className={`px-2.5 py-1 rounded border transition-all cursor-pointer ${
+                      dualTableFilter === 'both'
+                        ? 'bg-[#059669] text-white border-[#059669] font-medium'
+                        : 'bg-white text-[#059669] border-[#059669]/30 hover:bg-[#059669]/5'
+                    }`}
+                  >
+                    Consensus ({consensusCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDualTableFilter('spacy-only')}
+                    className={`px-2.5 py-1 rounded border transition-all cursor-pointer ${
+                      dualTableFilter === 'spacy-only'
+                        ? 'bg-[#6366f1] text-white border-[#6366f1] font-medium'
+                        : 'bg-white text-[#6366f1] border-[#6366f1]/30 hover:bg-[#6366f1]/5'
+                    }`}
+                  >
+                    spaCy Only ({spacyOnlyCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDualTableFilter('bert-only')}
+                    className={`px-2.5 py-1 rounded border transition-all cursor-pointer ${
+                      dualTableFilter === 'bert-only'
+                        ? 'bg-[#0d9488] text-white border-[#0d9488] font-medium'
+                        : 'bg-white text-[#0d9488] border-[#0d9488]/30 hover:bg-[#0d9488]/5'
+                    }`}
+                  >
+                    BERT Only ({bertOnlyCount})
+                  </button>
+                </div>
+              )}
 
               {filteredResults.length === 0 ? (
                 <div className="text-xs font-mono text-[#1a1a18]/60 p-8 text-center bg-[#f7f7f5] border border-dashed border-[rgba(26,26,24,0.15)] rounded-lg space-y-2">
@@ -657,8 +923,24 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
                                 </span>
                               </div>
                             </td>
-                            <td className="py-2.5 px-3 text-[#1a1a18]">
-                              {ent.model}
+                            <td className="py-2.5 px-3">
+                              {modelChoice === 'Dual' ? (
+                                (ent as any).detectedBy === 'Both' ? (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#059669]/10 text-[#059669] border border-[#059669]/20 font-medium inline-flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" /> Both Agreed
+                                  </span>
+                                ) : (ent as any).detectedBy === 'spaCy' || (ent as any).detectedBy === 'spacy' ? (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/20 font-medium inline-flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#6366f1]" /> spaCy Only
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0d9488]/10 text-[#0d9488] border border-[#0d9488]/20 font-medium inline-flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]" /> BERT Only
+                                  </span>
+                                )
+                              ) : (
+                                <span className="text-[#1a1a18]">{ent.model}</span>
+                              )}
                             </td>
                           </tr>
                         );

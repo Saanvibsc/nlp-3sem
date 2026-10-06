@@ -13,11 +13,11 @@ export const Header: React.FC<HeaderProps> = ({
   totalArticles,
 }) => {
   const quickLinks: { id: PageId; label: string }[] = [
-    { id: 'NER workbench', label: 'Workbench' },
     { id: 'Overview', label: 'Dashboard' },
+    { id: 'NER workbench', label: 'NER Workbench' },
     { id: 'Article explorer', label: 'Explorer' },
+    { id: 'spaCy vs BERT comparison', label: 'spaCy vs BERT' },
     { id: 'Evaluation & Confusion Matrix', label: 'Evaluation' },
-    { id: 'spaCy vs BERT comparison', label: 'Models' },
     { id: 'Bias, Error & Explainability', label: 'Audits' },
   ];
 
