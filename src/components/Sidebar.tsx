@@ -7,16 +7,17 @@ import {
   GitCompare, 
   TriangleAlert as AlertTriangle, 
   Search, 
-  Cpu
+  Cpu,
+  FileCode
 } from 'lucide-react';
 
 export type PageId =
   | 'Overview'
-  | 'Article explorer'
   | 'NER workbench'
-  | 'Evaluation & Confusion Matrix'
-  | 'Bias, Error & Explainability'
-  | 'spaCy vs BERT comparison';
+  | 'Article explorer'
+  | 'Python Pipeline (code.py)'
+  | 'spaCy vs BERT comparison'
+  | 'Evaluation & Confusion Matrix';
 
 interface SidebarProps {
   currentPage: PageId;
@@ -43,13 +44,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'Overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'NER workbench', label: 'NER Workbench', icon: Terminal },
     { id: 'Article explorer', label: 'Article Explorer', icon: FileText },
+    { id: 'Python Pipeline (code.py)', label: 'Pipeline (code.py)', icon: FileCode },
     { id: 'spaCy vs BERT comparison', label: 'spaCy vs BERT Comparison', icon: GitCompare },
     { id: 'Evaluation & Confusion Matrix', label: 'Confusion Matrix & Metrics', icon: Grid3X3 },
-    { id: 'Bias, Error & Explainability', label: 'Bias & Error Audit', icon: AlertTriangle },
   ];
 
   return (
     <aside className="w-[260px] bg-[#f7f7f5] border-r border-[rgba(26,26,24,0.08)] flex flex-col shrink-0 h-full overflow-y-auto text-[#1a1a18]">
+      {/* Brand Header */}
+      <div className="p-5 pb-3 border-b border-[rgba(26,26,24,0.08)] flex items-center justify-between">
+        <div 
+          onClick={() => onSelectPage('Overview')}
+          className="flex items-center gap-2 cursor-pointer select-none"
+        >
+          <span className="font-semibold text-sm tracking-tight text-[#1a1a18]">
+            NER STUDIO
+          </span>
+          <span className="text-[10px] bg-[#d97706] text-white px-1.5 py-0.5 rounded font-mono font-medium leading-none">
+            PRO
+          </span>
+        </div>
+        <span className="text-[10px] font-mono text-[#1a1a18]/50">
+          News Intelligence
+        </span>
+      </div>
+
       {/* Sidebar sections */}
       <div className="p-5 flex-1 space-y-6">
         {/* Navigation Section */}

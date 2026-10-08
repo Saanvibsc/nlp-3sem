@@ -16,9 +16,9 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'Overview', label: 'Dashboard' },
     { id: 'NER workbench', label: 'NER Workbench' },
     { id: 'Article explorer', label: 'Explorer' },
+    { id: 'Python Pipeline (code.py)', label: 'code.py' },
     { id: 'spaCy vs BERT comparison', label: 'spaCy vs BERT' },
-    { id: 'Evaluation & Confusion Matrix', label: 'Evaluation' },
-    { id: 'Bias, Error & Explainability', label: 'Audits' },
+    { id: 'Evaluation & Confusion Matrix', label: 'Confusion Matrix & Metrics' },
   ];
 
   return (

@@ -418,7 +418,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               : 'border-transparent text-[#1a1a18]/60 hover:text-[#1a1a18]'
           }`}
         >
-          <AlertOctagon className="w-3.5 h-3.5" /> Error Analysis & Root Cause Audit
+          <AlertOctagon className="w-3.5 h-3.5" /> Error Analysis & Misclassifications
         </button>
         <button
           onClick={() => setActiveTab('confidence')}

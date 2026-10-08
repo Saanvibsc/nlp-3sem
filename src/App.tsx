@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Sidebar, PageId } from './components/Sidebar';
-import { Header } from './components/Header';
 import { OverviewView } from './views/OverviewView';
 import { ArticleExplorerView } from './views/ArticleExplorerView';
 import { NerWorkbenchView } from './views/NerWorkbenchView';
 import { ComparisonView } from './views/ComparisonView';
 import { EvaluationMatrixView } from './views/EvaluationMatrixView';
-import { BiasAuditView } from './views/BiasAuditView';
+import { CodePipelineView } from './views/CodePipelineView';
 import { CorpusArticle, GroundTruthArticle } from './services/nlpEngine';
 
 // Default static imports for instant responsiveness
@@ -22,6 +21,14 @@ export const App: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(allCategories);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [workbenchInitialText, setWorkbenchInitialText] = useState<string | undefined>(undefined);
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Auto scroll to top on page navigation
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [currentPage]);
 
   // Toggle category filter
   const handleToggleCategory = (cat: string) => {
@@ -46,23 +53,24 @@ export const App: React.FC = () => {
   const handleSendToWorkbench = (text: string) => {
     setWorkbenchInitialText(text);
     setCurrentPage('NER workbench');
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
   };
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#fdfdfc] text-[#1a1a18] font-sans antialiased">
-      {/* Top Bar Nav matching Variation 5 */}
-      <Header
-        currentPage={currentPage}
-        onSelectPage={page => setCurrentPage(page)}
-        totalArticles={filteredArticles.length}
-      />
-
-      {/* Main Layout (Sidebar + Content Area) */}
+      {/* Main Layout (Sidebar + Content Area - top Header removed for clean full-height layout) */}
       <div className="flex-1 flex h-full min-h-0 min-w-0 overflow-hidden">
         {/* Sidebar Navigation */}
         <Sidebar
           currentPage={currentPage}
-          onSelectPage={page => setCurrentPage(page)}
+          onSelectPage={page => {
+            setCurrentPage(page);
+            if (mainRef.current) {
+              mainRef.current.scrollTop = 0;
+            }
+          }}
           categories={allCategories}
           selectedCategories={selectedCategories}
           onToggleCategory={handleToggleCategory}
@@ -73,7 +81,7 @@ export const App: React.FC = () => {
 
         {/* Content Area */}
         <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-[#fdfdfc]">
-          <main className="flex-1 overflow-y-auto px-6 py-8 md:px-12 max-w-7xl w-full mx-auto">
+          <main ref={mainRef} className="flex-1 overflow-y-auto px-6 py-8 md:px-12 max-w-7xl w-full mx-auto">
             {currentPage === 'Overview' && (
               <OverviewView
                 articles={filteredArticles}
@@ -81,6 +89,7 @@ export const App: React.FC = () => {
                 onNavigateToExplorer={() => setCurrentPage('Article explorer')}
                 onNavigateToWorkbench={handleSendToWorkbench}
                 onNavigateToEvaluation={() => setCurrentPage('Evaluation & Confusion Matrix')}
+                onNavigateToCode={() => setCurrentPage('Python Pipeline (code.py)')}
               />
             )}
 
@@ -88,6 +97,12 @@ export const App: React.FC = () => {
               <ArticleExplorerView
                 articles={filteredArticles}
                 onSendToWorkbench={handleSendToWorkbench}
+              />
+            )}
+
+            {currentPage === 'Python Pipeline (code.py)' && (
+              <CodePipelineView
+                onNavigateToWorkbench={() => setCurrentPage('NER workbench')}
               />
             )}
 
@@ -99,14 +114,12 @@ export const App: React.FC = () => {
               <EvaluationMatrixView groundTruthData={groundTruth} />
             )}
 
-            {currentPage === 'Bias, Error & Explainability' && <BiasAuditView />}
-
             {currentPage === 'spaCy vs BERT comparison' && <ComparisonView />}
           </main>
         </div>
       </div>
 
-      {/* Pinned Bottom Footer matching Variation 5 */}
+      {/* Pinned Bottom Footer */}
       <footer className="border-t border-[rgba(26,26,24,0.08)] flex items-center justify-between px-6 py-2.5 bg-[#f7f7f5] z-20 shrink-0 text-xs">
         <span className="label opacity-60">NER Studio Pro · News Intelligence</span>
         <span className="label hidden sm:inline opacity-60">OntoNotes 5.0 & CoNLL-2003 Benchmark Active</span>
