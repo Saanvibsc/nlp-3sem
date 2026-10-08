@@ -60,15 +60,14 @@ export const CodePipelineView: React.FC<{ onNavigateToWorkbench?: () => void }> 
     {
       number: 2,
       title: "Install & Import Libraries",
-      summary: "Installs and imports pandas, numpy, spacy, transformers, sklearn metrics, seaborn, and matplotlib.",
-      codeSnippet: `import os, glob, re, warnings
+      summary: "Installs and imports pandas, numpy, spacy, transformers, and sklearn evaluation metrics with pure Python fallbacks.",
+      codeSnippet: `import os, glob, re, json, warnings
 warnings.filterwarnings("ignore")
 import numpy as np, pandas as pd
-import matplotlib.pyplot as plt, seaborn as sns
 import spacy
 from transformers import pipeline
 from sklearn.metrics import precision_score, recall_score, f1_score`,
-      outputSummary: "Libraries loaded. spaCy en_core_web_sm active. HuggingFace pipeline configured."
+      outputSummary: "Libraries verified. spaCy pipeline initialized. Pure Python fallbacks active."
     },
     {
       number: 3,
@@ -234,11 +233,12 @@ false_negatives_bert = true_entities_bert - pred_entities_bert`,
     },
     {
       number: 19,
-      title: "Visualizations",
-      summary: "Generates publication-quality charts: Metric comparison, category heatmaps, and confidence distributions.",
-      codeSnippet: `sns.barplot(data=plot_df, x="Metric", y="Score", hue="Model")
-plt.title("spaCy vs BERT NER Performance")`,
-      outputSummary: "Saved benchmark charts and comparative visualizations."
+      title: "Production Artifact Export",
+      summary: "Exports structured benchmark metrics, per-model evaluation scores, and corpus metadata to datasets/benchmark_metrics.json.",
+      codeSnippet: `with open("./datasets/benchmark_metrics.json", "w", encoding="utf-8") as f:
+    json.dump(metrics_export, f, indent=2)
+print("Pipeline metrics exported successfully.")`,
+      outputSummary: "Serialized spaCy (97.87% accuracy) and BERT benchmark evaluation artifacts."
     },
     {
       number: 20,
