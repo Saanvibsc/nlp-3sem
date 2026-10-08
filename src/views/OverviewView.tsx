@@ -12,7 +12,8 @@ import {
   Zap, 
   Newspaper,
   Layers,
-  Sparkles
+  Sparkles,
+  FileUp,
 } from 'lucide-react';
 
 interface OverviewViewProps {
@@ -22,6 +23,7 @@ interface OverviewViewProps {
   onNavigateToWorkbench: (text: string) => void;
   onNavigateToEvaluation: () => void;
   onNavigateToCode?: () => void;
+  onNavigateToUpload?: () => void;
 }
 
 export const OverviewView: React.FC<OverviewViewProps> = ({
@@ -30,6 +32,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   onNavigateToWorkbench,
   onNavigateToEvaluation,
   onNavigateToCode,
+  onNavigateToUpload,
 }) => {
   // Category counts from news dataset
   const categoryStats = [
@@ -69,11 +72,19 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          {onNavigateToUpload && (
+            <button
+              onClick={onNavigateToUpload}
+              className="btn btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5 cursor-pointer shadow-xs bg-[#d97706] hover:bg-[#b45309] text-white border-[#d97706]"
+            >
+              <FileUp className="w-3.5 h-3.5" /> Upload Article & NER
+            </button>
+          )}
           <button
             onClick={() => onNavigateToWorkbench('')}
-            className="btn btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5 cursor-pointer"
           >
-            <Play className="w-3.5 h-3.5 fill-current" /> Launch Workbench
+            <Play className="w-3.5 h-3.5 text-[#1a1a18]/70" /> Launch Workbench
           </button>
           <button
             onClick={onNavigateToEvaluation}

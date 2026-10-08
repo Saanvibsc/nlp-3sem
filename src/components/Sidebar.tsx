@@ -8,11 +8,14 @@ import {
   TriangleAlert as AlertTriangle, 
   Search, 
   Cpu,
-  FileCode
+  FileCode,
+  FileUp,
+  Upload
 } from 'lucide-react';
 
 export type PageId =
   | 'Overview'
+  | 'Upload Article - NER'
   | 'NER workbench'
   | 'Article explorer'
   | 'Python Pipeline (code.py)'
@@ -42,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navItems: { id: PageId; label: string; icon: React.FC<any> }[] = [
     { id: 'Overview', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'Upload Article - NER', label: 'Upload Article & NER', icon: FileUp },
     { id: 'NER workbench', label: 'NER Workbench', icon: Terminal },
     { id: 'Article explorer', label: 'Article Explorer', icon: FileText },
     { id: 'Python Pipeline (code.py)', label: 'Pipeline (code.py)', icon: FileCode },

@@ -17,16 +17,19 @@ import {
   Tag,
   Zap,
   Cpu,
+  FileUp,
 } from 'lucide-react';
 
 interface ArticleExplorerViewProps {
   articles: CorpusArticle[];
   onSendToWorkbench: (text: string) => void;
+  onNavigateToUpload?: () => void;
 }
 
 export const ArticleExplorerView: React.FC<ArticleExplorerViewProps> = ({
   articles,
   onSendToWorkbench,
+  onNavigateToUpload,
 }) => {
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -64,17 +67,30 @@ export const ArticleExplorerView: React.FC<ArticleExplorerViewProps> = ({
 
   return (
     <div className="space-y-8 pt-2 pb-12">
-      <div className="max-w-3xl">
-        <span className="label !opacity-100 text-[#d97706] flex items-center gap-1.5 font-medium mb-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]" />
-          Interactive News Corpus Explorer
-        </span>
-        <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-[#1a1a18] leading-[1.05] tracking-tight mb-3">
-          Article Explorer
-        </h1>
-        <p className="font-serif text-base sm:text-lg text-[#1a1a18]/70 max-w-2xl leading-relaxed mb-6">
-          Click any news article to inspect its live entity classification, token spans, confidence distributions, and model predictions.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="max-w-3xl">
+          <span className="label !opacity-100 text-[#d97706] flex items-center gap-1.5 font-medium mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]" />
+            Interactive News Corpus Explorer
+          </span>
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-[#1a1a18] leading-[1.05] tracking-tight mb-3">
+            Article Explorer
+          </h1>
+          <p className="font-serif text-base sm:text-lg text-[#1a1a18]/70 max-w-2xl leading-relaxed mb-6">
+            Click any news article to inspect its live entity classification, token spans, confidence distributions, and model predictions.
+          </p>
+        </div>
+
+        {onNavigateToUpload && (
+          <div className="shrink-0 pt-2">
+            <button
+              onClick={onNavigateToUpload}
+              className="btn btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5 cursor-pointer shadow-xs bg-[#d97706] hover:bg-[#b45309] text-white border-[#d97706]"
+            >
+              <FileUp className="w-3.5 h-3.5" /> Upload Article & NER
+            </button>
+          </div>
+        )}
       </div>
 
       {articles.length === 0 ? (

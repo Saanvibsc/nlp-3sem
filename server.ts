@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
+import mammoth from 'mammoth';
 import { GoogleGenAI, Type } from '@google/genai';
 import {
   extractSpacyEntities,
@@ -15,6 +16,12 @@ import {
   type GroundTruthArticle,
   type CorpusArticle,
 } from './src/services/nlpEngine.ts';
+import {
+  cleanExtractedText,
+  computeDocumentStats,
+  extractStructuredContent,
+  extractTitleFromText,
+} from './src/services/documentExtractor.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -349,6 +356,156 @@ Extract every distinct entity or semantic term exactly as it appears in the text
       warning: 'Local fallback active',
     });
   }
+});
+
+// ----------------------------------------------------
+// DOCUMENT & ARTICLE UPLOAD / TEXT EXTRACTION / NER
+// ----------------------------------------------------
+
+app.post('/api/v1/extract/document', async (req: Request, res: Response) => {
+  try {
+    const {
+      filename = 'uploaded_article.txt',
+      base64Content,
+      rawText,
+      model = 'spaCy',
+      dense = false,
+      min_score = 0.0,
+    } = req.body;
+
+    let extractedRaw = '';
+    const ext = filename.split('.').pop()?.toLowerCase() || 'txt';
+
+    if (rawText && typeof rawText === 'string') {
+      extractedRaw = rawText;
+    } else if (base64Content && typeof base64Content === 'string') {
+      const buffer = Buffer.from(base64Content, 'base64');
+      if (ext === 'docx') {
+        try {
+          const docxResult = await mammoth.extractRawText({ buffer });
+          extractedRaw = docxResult.value || '';
+        } catch (mErr) {
+          console.warn('DOCX extraction warning:', mErr);
+          extractedRaw = buffer.toString('utf-8');
+        }
+      } else if (ext === 'pdf') {
+        try {
+          const pdfParsePkg = (await import('pdf-parse')) as any;
+          const PDFClass = pdfParsePkg.PDFParse || pdfParsePkg.default || pdfParsePkg;
+          if (typeof PDFClass === 'function') {
+            try {
+              const parser = new PDFClass({ verbosity: 0 });
+              if (parser && typeof parser.load === 'function') {
+                await parser.load(buffer);
+                extractedRaw = (await parser.getText()) || '';
+              }
+            } catch {
+              const resText = await (PDFClass as any)(buffer);
+              extractedRaw = resText.text || '';
+            }
+          }
+        } catch (pdfErr) {
+          console.warn('PDF text extraction fallback:', pdfErr);
+          const rawStr = buffer.toString('binary');
+          const matches = rawStr.match(/[A-Za-z0-9\s.,;:'"?!()/-]{6,}/g);
+          extractedRaw = matches ? matches.join(' ') : buffer.toString('utf-8');
+        }
+      } else {
+        extractedRaw = buffer.toString('utf-8');
+      }
+    } else {
+      return res.status(400).json({ error: 'Either "rawText" or "base64Content" is required.' });
+    }
+
+    let detectedTitle = '';
+    if (ext === 'json' || ext === 'csv') {
+      const structured = extractStructuredContent(extractedRaw, ext);
+      detectedTitle = structured.title;
+      extractedRaw = structured.text;
+    }
+
+    const cleanText = cleanExtractedText(extractedRaw, {
+      stripHtml: true,
+      normalizeWhitespace: true,
+      preserveParagraphs: true,
+    });
+
+    if (!detectedTitle) {
+      detectedTitle = extractTitleFromText(cleanText, filename);
+    }
+
+    const stats = computeDocumentStats(cleanText);
+
+    // Run selected NER model
+    let entities: any[] = [];
+    const t0 = performance.now();
+    if (model === 'BERT') {
+      entities = extractBertEntities(cleanText).filter(e => e.score >= min_score);
+    } else if (model === 'Hybrid') {
+      const sp = extractSpacyEntities(cleanText);
+      const bt = extractBertEntities(cleanText);
+      const map = new Map<string, any>();
+      for (const e of bt) if (e.score >= min_score) map.set(`${e.text.toLowerCase()}|${e.start}`, e);
+      for (const e of sp) {
+        const k = `${e.text.toLowerCase()}|${e.start}`;
+        if (!map.has(k) && e.score >= min_score) map.set(k, { ...e, model: 'spaCy+Ensemble' });
+      }
+      entities = Array.from(map.values()).sort((a, b) => a.start - b.start);
+    } else if (model === 'Dense') {
+      entities = extractDenseWordRecognition(cleanText);
+    } else if (model === 'AC Automaton') {
+      entities = extractAhoCorasickEntities(cleanText, Boolean(dense));
+    } else {
+      entities = extractSpacyEntities(cleanText).filter(e => e.score >= min_score);
+    }
+    const nerLatencyMs = Number((performance.now() - t0).toFixed(2));
+
+    res.json({
+      success: true,
+      filename,
+      fileType: ext,
+      title: detectedTitle,
+      stats,
+      cleanText,
+      rawPreview: extractedRaw.slice(0, 800),
+      ner: {
+        model,
+        entity_count: entities.length,
+        latency_ms: nerLatencyMs,
+        entities,
+      },
+    });
+  } catch (err: any) {
+    console.error('Error in /api/v1/extract/document:', err);
+    res.status(500).json({ error: 'Text extraction failed', message: err?.message });
+  }
+});
+
+// Save newly extracted article to live corpus
+app.post('/api/v1/article/save-to-corpus', (req: Request, res: Response) => {
+  const { title, content, category = 'Uploaded News', description } = req.body;
+  if (!content || typeof content !== 'string') {
+    return res.status(400).json({ error: 'Article content is required.' });
+  }
+
+  const newId = corpusData.length > 0 ? Math.max(...corpusData.map(a => a.id)) + 1 : 1;
+  const newArticle: CorpusArticle = {
+    id: newId,
+    headlines: title || 'User Uploaded Article',
+    category: category,
+    description: description || (content.slice(0, 180) + '...'),
+    content: content,
+    word_count: content.split(/\s+/).filter(Boolean).length,
+  };
+
+  corpusData.unshift(newArticle);
+
+  res.json({
+    success: true,
+    message: 'Article successfully added to corpus',
+    article: newArticle,
+    totalCorpus: corpusData.length,
+  });
 });
 
 // Corpus Query & Pagination

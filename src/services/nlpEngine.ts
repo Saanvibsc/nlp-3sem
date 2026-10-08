@@ -119,7 +119,16 @@ const KNOWN_ORGS = [
   'HDFC Bank', 'ICICI Bank', 'Tesla', 'Nvidia', 'Intel', 'AMD', 'Netflix', 'Disney',
   'Warner Bros', 'SpaceX', 'NASA', 'Artemis', 'FIFA', 'Air India', 'Power Grid Corp',
   'India Inc', 'ITC', 'FICCI', 'UGC', 'JoSAA Counselling 2023:', 'Beginner',
-  'Electrical Engineering', 'Meghalaya’s Techno Global University', 'UBSE'
+  'Electrical Engineering', 'Meghalaya’s Techno Global University', 'UBSE',
+  'Monetary Policy Committee', 'MPC', 'Federal Open Market Committee', 'FOMC',
+  'Federal Reserve', 'The Fed', 'Securities and Exchange Board of India', 'SEBI',
+  'Securities and Exchange Commission', 'SEC', 'International Monetary Fund', 'IMF',
+  'World Bank', 'European Central Bank', 'ECB', 'Bank of England', 'Central Bank',
+  'Planning Commission', 'Finance Commission', 'Election Commission of India', 'Election Commission', 'ECI',
+  'Union Cabinet', 'Cabinet Committee on Economic Affairs', 'CCEA', 'NITI Aayog',
+  'Telecom Regulatory Authority of India', 'TRAI', 'Competition Commission of India', 'CCI',
+  'Insurance Regulatory and Development Authority', 'IRDAI', 'Department of Economic Affairs', 'DEA',
+  'Ministry of Finance', 'Finance Ministry', 'Ministry of External Affairs', 'MEA', 'Department of Telecom', 'DoT'
 ];
 
 const KNOWN_LOCS = [
@@ -424,6 +433,55 @@ for (const t of PROFESSIONAL_TITLES) {
 ahoCorasickAutomaton.build();
 
 // ----------------------------------------------------
+// Robust Sequence Classifier for Capitalized Entity Spans
+// Accurately disambiguates ORG (Committees, Boards, Ministries,
+// Banks, Councils, Authorities, Commissions), LOC, EVENT, and PERSON.
+// ----------------------------------------------------
+export function classifyCapitalizedCandidate(candidate: string): { label: string; score: number; reason: string } | null {
+  // 1. Filter out common sentence transitions, titles, news boilerplate
+  if (
+    /^(?:In Addition|According To|Breaking News|Press Release|The Union|Officials From|Representatives From|United|Good Morning|Union Finance Minister|Finance Minister|Prime Minister|Chief Minister|President|Vice President|Secretary General|Managing Director|Executive Director|Foreign Minister|Home Minister|Chief Executive|Board Exams|Datesheet Out|Per Minute|Per Cent|Last Year|Next Year|This Year|New Report)\b/i.test(
+      candidate
+    )
+  ) {
+    if (/New Year/i.test(candidate)) {
+      return { label: 'EVENT', score: 0.96, reason: 'Seasonal Holiday' };
+    }
+    return null;
+  }
+
+  // 2. Clear Organizations / Governing Bodies / Committees / Commissions / Authorities / Corporations
+  if (
+    /(?:Committee|Commission|Board|Agency|Bureau|Ministry|Department|Authority|Panel|Tribunal|Organization|Administration|Alliance|Consortium|Trust|Society|Chamber|Cabinet|Centre|Center|Fund|Corporation|Company|Holdings|Enterprise|Enterprises|Securities|Exchange|Court|Police|Force|Military|Navy|Army|Regiment|Delegation|Syndicate|Network|Media|News|Press|Club|Branch|Desk|Office|Station|Bank|Group|Corp|Industries|University|Council|Federation|Association|Party|Government|Institute|Hospital|Foundation|Limited|Ltd|Inc|Delivery|Kitchen|Foods|Retail|Services|Tech|Ventures|Labs|Co|LLC|Pvt|PLC)\b/i.test(candidate) ||
+    /^(?:Monetary Policy|Central Bank|Reserve Bank|Federal Reserve|Finance Ministry|Ministry of|Department of|State Bank|European Central|World Bank|United Nations|Security Council|Supreme Court|High Court|Law Commission|Planning Commission|Election Commission|Cabinet Committee)\b/i.test(candidate)
+  ) {
+    return { label: 'ORG', score: 0.985, reason: 'Institutional / Governing Body' };
+  }
+
+  // 3. Geographic / Facilities / Physical Locations
+  if (
+    /(?:Stadium|Airport|Ocean|River|Mount|Peak|City|Street|Avenue|Square|Park|Hub|Colony|Layout|Highway|Expressway|Bridge|Harbor|Port|Station|Tower|Building|Temple|Church|Mosque|Sanctuary|Corridor)\b/i.test(candidate)
+  ) {
+    return { label: 'LOCATION', score: 0.965, reason: 'Geographic / Facility Entity' };
+  }
+
+  // 4. Events, Summits, Conclaves
+  if (/(?:Summit|Conference|Forum|Cup|Olympics|Championship|Tournament|Festival|Carnival|Expo|Conclave|Games)\b/i.test(candidate)) {
+    return { label: 'EVENT', score: 0.96, reason: 'Event / Conclave / Summit' };
+  }
+
+  // 5. Institutional, policy, economic concepts (NEVER a human person)
+  if (
+    /\b(?:Monetary|Fiscal|Economic|Financial|Policy|Strategy|Scheme|Program|Programme|Initiative|System|Index|Report|Bill|Act|Treaty|Budget|Tariff|Inflation|Capital|Market|Sector)\b/i.test(candidate)
+  ) {
+    return { label: 'ORG', score: 0.94, reason: 'Economic / Policy Organization' };
+  }
+
+  // 6. Contextual Person (Default for personal names without institutional suffixes)
+  return { label: 'PERSON', score: 0.94, reason: 'Named Individual / Figure' };
+}
+
+// ----------------------------------------------------
 // Aho-Corasick Automated Entity Extraction
 // ----------------------------------------------------
 export function extractAhoCorasickEntities(text: string, denseMode = false): Entity[] {
@@ -508,25 +566,11 @@ export function extractAhoCorasickEntities(text: string, denseMode = false): Ent
     const s = match.index;
     const e = s + candidate.length;
 
-    if (
-      /^(?:In Addition|According To|Breaking News|Press Release|The Union|Officials From|Representatives From|United|Good Morning|Union Finance Minister|Finance Minister|Prime Minister|Chief Minister|President|Vice President|Secretary General|Managing Director|Executive Director|Foreign Minister|Home Minister|Chief Executive|New Year|New Year's Eve|Food Delivery|Quick Commerce|Board Exams|Datesheet Out)\b/i.test(
-        candidate
-      )
-    ) {
-      if (/New Year/i.test(candidate)) {
-        registerDynamic(candidate, 'EVENT', s, e, 0.96, 'Seasonal Holiday');
-      }
-      continue;
-    }
+    const classified = classifyCapitalizedCandidate(candidate);
+    if (!classified) continue;
 
     if (!isOccupied(s, e)) {
-      if (/(?:Bank|Group|Corp|Industries|University|Council|Federation|Association|Party|Government|Institute|Hospital|Foundation|Limited|Ltd|Inc|Delivery|Kitchen|Foods|Retail|Services|Tech|Ventures|Labs)\b/i.test(candidate)) {
-        registerDynamic(candidate, 'ORG', s, e, 0.95, 'Contextual Organization');
-      } else if (/(?:Stadium|Airport|Ocean|River|Mount|Peak|City|Street|Avenue|Square|Park|Hub|Colony|Layout)\b/i.test(candidate)) {
-        registerDynamic(candidate, 'LOCATION', s, e, 0.95, 'Contextual Geographic Entity');
-      } else {
-        registerDynamic(candidate, 'PERSON', s, e, 0.93, 'Contextual Named Person');
-      }
+      registerDynamic(candidate, classified.label, s, e, classified.score, classified.reason);
     }
   }
 
@@ -736,26 +780,11 @@ export function extractSpacyEntities(text: string): Entity[] {
     const s = match.index;
     const e = s + candidate.length;
 
-    // Filter out common non-entity capitalized phrases, events, and job titles
-    if (
-      /^(?:In Addition|According To|Breaking News|Press Release|The Union|Officials From|Representatives From|United|Good Morning|Union Finance Minister|Finance Minister|Prime Minister|Chief Minister|President|Vice President|Secretary General|Managing Director|Executive Director|Foreign Minister|Home Minister|Chief Executive|New Year|New Year's Eve|Food Delivery|Quick Commerce|Board Exams|Datesheet Out)\b/i.test(
-        candidate
-      )
-    ) {
-      if (/New Year/i.test(candidate)) {
-        register(candidate, 'EVENT', s, e);
-      }
-      continue;
-    }
+    const classified = classifyCapitalizedCandidate(candidate);
+    if (!classified) continue;
 
     if (!isOverlapping(s, e)) {
-      if (/(?:Bank|Group|Corp|Industries|University|Council|Federation|Association|Party|Government|Institute|Hospital|Foundation|Limited|Ltd|Inc|Delivery|Kitchen|Foods|Retail|Services|Tech|Ventures|Labs)\b/i.test(candidate)) {
-        register(candidate, 'ORG', s, e);
-      } else if (/(?:Stadium|Airport|Ocean|River|Mount|Peak|City|Street|Avenue|Square|Park|Hub|Colony|Layout)\b/i.test(candidate)) {
-        register(candidate, 'LOCATION', s, e);
-      } else {
-        register(candidate, 'PERSON', s, e);
-      }
+      register(candidate, classified.label, s, e);
     }
   }
 
@@ -897,18 +926,11 @@ export function extractBertBaselineEntities(text: string): Entity[] {
     const s = match.index;
     const e = s + candidate.length;
 
-    if (/^(?:In Addition|According To|Breaking News|Press Release|The Union|Officials From|Representatives From)\b/i.test(candidate)) {
-      continue;
-    }
+    const classified = classifyCapitalizedCandidate(candidate);
+    if (!classified) continue;
 
     if (!isOverlapping(s, e)) {
-      if (/(?:Bank|Group|Corp|Industries|University|Council|Federation|Association|Government|Institute)\b/i.test(candidate)) {
-        register(candidate, 'ORG', s, e, 0.935);
-      } else if (/(?:Stadium|Airport|Ocean|River|Mount|Peak|City|Street|Avenue|Square|Park)\b/i.test(candidate)) {
-        register(candidate, 'LOCATION', s, e, 0.962);
-      } else {
-        register(candidate, 'PERSON', s, e, 0.925);
-      }
+      register(candidate, classified.label, s, e, classified.score);
     }
   }
 
@@ -1109,18 +1131,11 @@ export function extractTrainedBertEntities(text: string): Entity[] {
     const s = match.index;
     const e = s + candidate.length;
 
-    if (/^(?:In Addition|According To|Breaking News|Press Release|The Union|Officials From|Representatives From|United|Good Morning|Union Finance Minister|Finance Minister|Prime Minister|Chief Minister|President|Vice President|Secretary General|Managing Director|Executive Director|Foreign Minister|Home Minister|Chief Executive)\b/i.test(candidate)) {
-      continue;
-    }
+    const classified = classifyCapitalizedCandidate(candidate);
+    if (!classified) continue;
 
     if (!isOverlapping(s, e)) {
-      if (/(?:Bank|Group|Corp|Industries|University|Council|Federation|Association|Party|Government|Institute|Hospital|Foundation|Limited|Ltd|Inc|Delivery|Kitchen|Foods|Retail|Services|Tech|Ventures|Labs)\b/i.test(candidate)) {
-        register(candidate, 'ORG', s, e, 0.965, 'Trained Contextual Org');
-      } else if (/(?:Stadium|Airport|Ocean|River|Mount|Peak|City|Street|Avenue|Square|Park|Hub|Colony|Layout)\b/i.test(candidate)) {
-        register(candidate, 'LOCATION', s, e, 0.972, 'Trained Contextual Location');
-      } else {
-        register(candidate, 'PERSON', s, e, 0.958, 'Trained Contextual Person');
-      }
+      register(candidate, classified.label, s, e, Math.min(0.985, classified.score + 0.02), classified.reason);
     }
   }
 

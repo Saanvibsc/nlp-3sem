@@ -28,10 +28,12 @@ import {
   Sliders,
   ShieldCheck,
   BookOpen,
+  FileUp,
 } from 'lucide-react';
 
 interface NerWorkbenchViewProps {
   initialText?: string;
+  onNavigateToUpload?: () => void;
 }
 
 const ALL_ENTITY_TYPES = [
@@ -66,7 +68,7 @@ const SAMPLE_STORIES: Record<string, string> = {
     'Virat Kohli and Rohit Sharma led India to victory against Australia at the Narendra Modi Stadium in Ahmedabad. The BCCI and International Cricket Council declared attendance records with over 130,000 fans on Sunday.',
 };
 
-export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText }) => {
+export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText, onNavigateToUpload }) => {
   const [selectedSample, setSelectedSample] = useState<string>(
     initialText ? '-- Custom Input --' : 'Zomato & Blinkit (Food Delivery & Quick Commerce)'
   );
@@ -281,8 +283,18 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText 
             Information Extraction Engine
           </h1>
         </div>
-        <div className="text-xs font-mono text-[#1a1a18]/70 flex items-center gap-2">
-          <span>spaCy (en_core_web_sm) & BERT (dslim/bert-base-NER)</span>
+        <div className="flex items-center gap-3">
+          <div className="text-xs font-mono text-[#1a1a18]/70 hidden md:block">
+            <span>spaCy (en_core_web_sm) & BERT (dslim/bert-base-NER)</span>
+          </div>
+          {onNavigateToUpload && (
+            <button
+              onClick={onNavigateToUpload}
+              className="btn btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 cursor-pointer shadow-xs bg-[#d97706] hover:bg-[#b45309] text-white border-[#d97706]"
+            >
+              <FileUp className="w-3.5 h-3.5" /> Upload Article & NER
+            </button>
+          )}
         </div>
       </div>
 
