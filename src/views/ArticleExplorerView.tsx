@@ -372,6 +372,7 @@ export const ArticleExplorerView: React.FC<ArticleExplorerViewProps> = ({
                     text={selectedArticle.content}
                     entities={detectedEntities}
                     showConfidence={activeModel === 'BERT'}
+                    showToolbar={false}
                   />
                 </div>
 

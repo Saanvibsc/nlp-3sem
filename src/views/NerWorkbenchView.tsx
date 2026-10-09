@@ -558,7 +558,7 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText,
                         {spacyFiltered.length} Spans
                       </span>
                     </div>
-                    <EntityHighlighter text={inputText} entities={spacyFiltered} showConfidence={false} />
+                    <EntityHighlighter text={inputText} entities={spacyFiltered} showConfidence={false} showToolbar={false} />
                   </div>
 
                   {/* Right Column: BERT */}
@@ -574,7 +574,7 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText,
                         {bertFiltered.length} Spans
                       </span>
                     </div>
-                    <EntityHighlighter text={inputText} entities={bertFiltered} showConfidence={true} />
+                    <EntityHighlighter text={inputText} entities={bertFiltered} showConfidence={true} showToolbar={false} />
                   </div>
                 </div>
               ) : (
@@ -613,6 +613,7 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText,
                     text={inputText}
                     entities={activeTab === 'spaCy' ? spacyFiltered : bertFiltered}
                     showConfidence={activeTab === 'BERT'}
+                    showToolbar={false}
                   />
                 </div>
               )}
@@ -639,6 +640,7 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText,
                 text={inputText}
                 entities={filteredResults}
                 showConfidence={modelChoice !== 'spaCy'}
+                showToolbar={false}
               />
             </div>
           )}

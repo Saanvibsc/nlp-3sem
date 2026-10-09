@@ -5,7 +5,6 @@ import { ArticleExplorerView } from './views/ArticleExplorerView';
 import { NerWorkbenchView } from './views/NerWorkbenchView';
 import { ComparisonView } from './views/ComparisonView';
 import { EvaluationMatrixView } from './views/EvaluationMatrixView';
-import { CodePipelineView } from './views/CodePipelineView';
 import { UploadArticleNer } from './views/UploadArticleNer';
 import { CorpusArticle, GroundTruthArticle } from './services/nlpEngine';
 
@@ -90,7 +89,6 @@ export const App: React.FC = () => {
                 onNavigateToExplorer={() => setCurrentPage('Article explorer')}
                 onNavigateToWorkbench={handleSendToWorkbench}
                 onNavigateToEvaluation={() => setCurrentPage('Evaluation & Confusion Matrix')}
-                onNavigateToCode={() => setCurrentPage('Python Pipeline (code.py)')}
                 onNavigateToUpload={() => setCurrentPage('Upload Article - NER')}
               />
             )}
@@ -107,12 +105,6 @@ export const App: React.FC = () => {
                 articles={filteredArticles}
                 onSendToWorkbench={handleSendToWorkbench}
                 onNavigateToUpload={() => setCurrentPage('Upload Article - NER')}
-              />
-            )}
-
-            {currentPage === 'Python Pipeline (code.py)' && (
-              <CodePipelineView
-                onNavigateToWorkbench={() => setCurrentPage('NER workbench')}
               />
             )}
 

@@ -1033,13 +1033,42 @@ export const UploadArticleNer: React.FC<UploadArticleNerProps> = ({
               </div>
             </div>
 
-            {/* View 1: Live Interactive Annotated Text */}
+            {/* View 1: Live Interactive Annotated Text & Proofing Studio */}
             {activeResultView === 'annotated' && (
-              <div className="p-6">
-                <h3 className="font-serif text-xl font-medium text-[#1a1a18] mb-4 pb-2 border-b border-[rgba(26,26,24,0.06)]">
-                  {articleTitle}
-                </h3>
-                <EntityHighlighter text={cleanText} entities={filteredEntities} showConfidence={true} />
+              <div className="p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[rgba(26,26,24,0.06)]">
+                  <div>
+                    <span className="text-[10px] font-mono text-[#d97706] font-semibold uppercase tracking-wider block">
+                      Annotated Article Text · Proofing & Verification Studio
+                    </span>
+                    <h3 className="font-serif text-xl sm:text-2xl font-medium text-[#1a1a18] mt-0.5">
+                      {articleTitle || 'Uploaded Article Document'}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-mono text-[#1a1a18]/60">
+                    <span>{cleanText.length.toLocaleString()} characters</span>
+                    <span>·</span>
+                    <span>{filteredEntities.length} entities indexed</span>
+                  </div>
+                </div>
+
+                <EntityHighlighter
+                  text={cleanText}
+                  entities={filteredEntities}
+                  showConfidence={true}
+                  enableProofing={true}
+                  showToolbar={true}
+                  articleTitle={articleTitle}
+                  onUpdateEntity={(updated) => {
+                    handleUpdateEntityLabel(updated, updated.label);
+                  }}
+                  onDeleteEntity={(deleted) => {
+                    setEntities(prev => prev.filter(e => !(e.text === deleted.text && e.start === deleted.start)));
+                  }}
+                  onAddEntity={(added) => {
+                    setEntities(prev => [...prev, added].sort((a, b) => a.start - b.start));
+                  }}
+                />
               </div>
             )}
 

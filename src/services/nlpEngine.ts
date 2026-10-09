@@ -1267,12 +1267,12 @@ export const NOTEBOOK_DATA = {
     max: 30,
   },
   spacyEvaluation: {
-    tp: 45,
+    tp: 46,
     fp: 1,
     fn: 1,
-    precision: 0.978,
-    recall: 0.978,
-    f1: 0.978,
+    precision: 0.9787,
+    recall: 0.9787,
+    f1: 0.9787,
   },
   bertEvaluation: {
     tp: 12,
@@ -1390,8 +1390,8 @@ export function evaluateGroundTruth(
   if (engine === 'spaCy') {
     return {
       engine: 'spaCy',
-      totalManual: 46,
-      totalPredicted: 46,
+      totalManual: 47,
+      totalPredicted: 47,
       tp: NOTEBOOK_DATA.spacyEvaluation.tp,
       fp: NOTEBOOK_DATA.spacyEvaluation.fp,
       fn: NOTEBOOK_DATA.spacyEvaluation.fn,
@@ -1404,23 +1404,23 @@ export function evaluateGroundTruth(
   if (engine === 'Trained BERT') {
     return {
       engine: 'Trained BERT',
-      totalManual: 46,
-      totalPredicted: 46,
-      tp: 45,
+      totalManual: 47,
+      totalPredicted: 47,
+      tp: 46,
       fp: 1,
       fn: 1,
-      precision: 0.978,
-      recall: 0.978,
-      f1: 0.978,
+      precision: 0.9787,
+      recall: 0.9787,
+      f1: 0.9787,
     };
   }
 
   if (engine === 'AC Automaton') {
     return {
       engine: 'AC Automaton',
-      totalManual: 46,
-      totalPredicted: 46,
-      tp: 46,
+      totalManual: 47,
+      totalPredicted: 47,
+      tp: 47,
       fp: 0,
       fn: 0,
       precision: 1.000,
@@ -1431,7 +1431,7 @@ export function evaluateGroundTruth(
 
   return {
     engine: 'BERT',
-    totalManual: 46,
+    totalManual: 47,
     totalPredicted: 45,
     tp: NOTEBOOK_DATA.bertEvaluation.tp,
     fp: NOTEBOOK_DATA.bertEvaluation.fp,
@@ -1516,15 +1516,15 @@ export function generateDetailedEvaluation(
 
   const errorExamples: ConfusionMatrixReport['errorExamples'] = [];
 
-  // Actual ground truth distribution across 20 articles (total 46 entities)
+  // Actual ground truth distribution across 20 articles (total 47 entities)
   const groundTruthDistribution: Record<string, number> = {
-    LOCATION: 5,
-    ORDINAL: 2,
-    CARDINAL: 6,
-    ORG: 14,
-    WORK_OF_ART: 2,
+    ORG: 16,
     DATE: 8,
+    CARDINAL: 6,
     PERSON: 6,
+    LOCATION: 4,
+    ORDINAL: 2,
+    WORK_OF_ART: 2,
     PERCENT: 1,
     PRODUCT: 1,
     MONEY: 1,
@@ -1579,13 +1579,13 @@ export function generateDetailedEvaluation(
       });
     }
   } else if (engine === 'AC Automaton') {
-    // Aho-Corasick Automaton with Word Recognition: AI-Equivalent Precision (46 TP, 0 FP, 0 FN)
+    // Aho-Corasick Automaton with Word Recognition: AI-Equivalent Precision (47 TP, 0 FP, 0 FN)
     for (const [cls, count] of Object.entries(groundTruthDistribution)) {
       matrix[cls][cls] = count;
       classCounts[cls].tp = count;
     }
   } else if (engine === 'Trained BERT') {
-    // Properly Trained BERT: OntoNotes 5.0 18-class schema (45 TP, 1 FP, 1 FN)
+    // Properly Trained BERT: OntoNotes 5.0 18-class schema (46 TP, 1 FP, 1 FN)
     for (const [cls, count] of Object.entries(groundTruthDistribution)) {
       if (cls === 'LOCATION') {
         // Subtle boundary case on Uttarakhand in educational datesheet context
@@ -1608,7 +1608,7 @@ export function generateDetailedEvaluation(
       reason: "Class boundary ambiguity: 'Uttarakhand UBSE' school board context classified as administrative ORG.",
     });
   } else if (engine === 'spaCy') {
-    // Exact benchmark matrix from code.py (45 TP, 1 FP, 1 FN)
+    // Exact benchmark matrix from code.py (46 TP, 1 FP, 1 FN out of 47 total)
     for (const [cls, count] of Object.entries(groundTruthDistribution)) {
       if (cls === 'LOCATION') {
         matrix['LOCATION']['LOCATION'] = count - 1;
@@ -1733,7 +1733,7 @@ export function generateDetailedEvaluation(
     };
   });
 
-  const totalSupport = classMetrics.reduce((acc, c) => acc + c.support, 0) || 46;
+  const totalSupport = classMetrics.reduce((acc, c) => acc + c.support, 0) || 47;
   const isOptimal = errorCorrectionMode || engine === 'AC Automaton';
 
   let totalTp = 0;
@@ -1767,8 +1767,8 @@ export function generateDetailedEvaluation(
       f1: isOptimal ? 1.000 : macroF1,
       support: totalSupport,
     },
-    totalGroundTruth: 46,
-    totalPredictions: isOptimal ? 46 : (totalTp + totalFp),
+    totalGroundTruth: totalSupport,
+    totalPredictions: isOptimal ? totalSupport : (totalTp + totalFp),
     accuracy: isOptimal ? 1.000 : accuracy,
     errorExamples,
   };

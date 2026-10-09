@@ -8,7 +8,6 @@ import {
   TriangleAlert as AlertTriangle, 
   Search, 
   Cpu,
-  FileCode,
   FileUp,
   Upload
 } from 'lucide-react';
@@ -18,7 +17,6 @@ export type PageId =
   | 'Upload Article - NER'
   | 'NER workbench'
   | 'Article explorer'
-  | 'Python Pipeline (code.py)'
   | 'spaCy vs BERT comparison'
   | 'Evaluation & Confusion Matrix';
 
@@ -48,7 +46,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'Upload Article - NER', label: 'Upload Article & NER', icon: FileUp },
     { id: 'NER workbench', label: 'NER Workbench', icon: Terminal },
     { id: 'Article explorer', label: 'Article Explorer', icon: FileText },
-    { id: 'Python Pipeline (code.py)', label: 'Pipeline (code.py)', icon: FileCode },
     { id: 'spaCy vs BERT comparison', label: 'spaCy vs BERT Comparison', icon: GitCompare },
     { id: 'Evaluation & Confusion Matrix', label: 'Confusion Matrix & Metrics', icon: Grid3X3 },
   ];

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff;">
+<rect width="760" height="380" fill="#ffffff" rx="8"/>
+<text x="140" y="28" font-size="14" font-weight="600" fill="#1a1a18">Entity-Level Performance & Semantic Class Coverage</text>
+<text x="140" y="42" font-size="11" fill="#71717a">True positive count vs ground truth entities by class (spaCy vs BERT)</text>
+<line x1="120.0" y1="50" x2="120.0" y2="335" stroke="#e4e4e7" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="120.0" y="351" font-size="10" font-family="monospace" fill="#a1a1aa" text-anchor="middle">0</text>
+<line x1="251.11111111111111" y1="50" x2="251.11111111111111" y2="335" stroke="#e4e4e7" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="251.11111111111111" y="351" font-size="10" font-family="monospace" fill="#a1a1aa" text-anchor="middle">4</text>
+<line x1="382.22222222222223" y1="50" x2="382.22222222222223" y2="335" stroke="#e4e4e7" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="382.22222222222223" y="351" font-size="10" font-family="monospace" fill="#a1a1aa" text-anchor="middle">8</text>
+<line x1="513.3333333333333" y1="50" x2="513.3333333333333" y2="335" stroke="#e4e4e7" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="513.3333333333333" y="351" font-size="10" font-family="monospace" fill="#a1a1aa" text-anchor="middle">12</text>
+<line x1="644.4444444444445" y1="50" x2="644.4444444444445" y2="335" stroke="#e4e4e7" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="644.4444444444445" y="351" font-size="10" font-family="monospace" fill="#a1a1aa" text-anchor="middle">16</text>
+<text x="108" y="74.0" font-size="11" font-weight="600" fill="#1a1a18" text-anchor="end">ORG</text>
+<rect x="120" y="56.0" width="524.4444444444445" height="10" fill="#e4e4e7" rx="2"/>
+<text x="649.4444444444445" y="64.0" font-size="9" font-family="monospace" fill="#71717a">GT: 16</text>
+<rect x="120" y="68.0" width="524.4444444444445" height="10" fill="#d97706" rx="2"/>
+<text x="649.4444444444445" y="76.0" font-size="9" font-family="monospace" font-weight="600" fill="#d97706">spaCy: 16</text>
+<rect x="120" y="80.0" width="393.3333333333333" height="10" fill="#2563eb" rx="2"/>
+<text x="518.3333333333333" y="88.0" font-size="9" font-family="monospace" font-weight="600" fill="#2563eb">BERT: 12</text>
+<text x="108" y="109.625" font-size="11" font-weight="600" fill="#1a1a18" text-anchor="end">PERSON</text>
+<rect x="120" y="91.625" width="196.66666666666666" height="10" fill="#e4e4e7" rx="2"/>
+<text x="321.66666666666663" y="99.625" font-size="9" font-family="monospace" fill="#71717a">GT: 6</text>
+<rect x="120" y="103.625" width="196.66666666666666" height="10" fill="#d97706" rx="2"/>
+<text x="321.66666666666663" y="111.625" font-size="9" font-family="monospace" font-weight="600" fill="#d97706">spaCy: 6</text>
+<rect x="120" y="115.625" width="0.0" height="10" fill="#2563eb" rx="2"/>
+<text x="125.0" y="123.625" font-size="9" font-family="monospace" font-weight="600" fill="#2563eb">BERT: 0</text>
+<text x="108" y="145.25" font-size="11" font-weight="600" fill="#1a1a18" text-anchor="end">LOCATION</text>
+<rect x="120" y="127.25" width="131.11111111111111" height="10" fill="#e4e4e7" rx="2"/>
+<text x="256.1111111111111" y="135.25" font-size="9" font-family="monospace" fill="#71717a">GT: 4</text>
+<rect x="120" y="139.25" width="98.33333333333333" height="10" fill="#d97706" rx="2"/>
+<text x="223.33333333333331" y="147.25" font-size="9" font-family="monospace" font-weight="600" fill="#d97706">spaCy: 3</text>
+<rect x="120" y="151.25" width="0.0" height="10" fill="#2563eb" rx="2"/>
+<text x="125.0" y="159.25" font-size="9" font-family="monospace" font-weight="600" fill="#2563eb">BERT: 0</text>
+<text x="108" y="180.875" font-size="11" font-weight="600" fill="#1a1a18" text-anchor="end">DATE</text>
+<rect x="120" y="162.875" width="262.22222222222223" height="10" fill="#e4e4e7" rx="2"/>
+<text x="387.22222222222223" y="170.875" font-size="9" font-family="monospace" fill="#71717a">GT: 8</text>
+<rect x="120" y="174.875" width="262.22222222222223" height="10" fill="#d97706" rx="2"/>
+<text x="387.22222222222223" y="182.875" font-size="9" font-family="monospace" font-weight="600" fill="#d97706">spaCy: 8</text>
+<rect x="120" y="186.875" width="0.0" height="10" fill="#2563eb" rx="2"/>
+<text x="125.0" y="194.875" font-size="9" font-family="monospace" font-weight="600" fill="#2563eb">BERT: 0</text>
+<text x="108" y="216.5" font-size="11" font-weight="600" fill="#1a1a18" text-anchor="end">CARDINAL</text>
+<rect x="120" y="198.5" width="196.66666666666666" height="10" fill="#e4e4e7" rx="2"/>
+<text x="321.66666666666663" y="206.5" font-size="9" font-family="monospace" fill="#71717a">GT: 6</text>
+<rect x="120" y="210.5" width="196.66666666666666" height="10" fill="#d97706" rx="2"/>
+<text x="321.66666666666663" y="218.5" font-size="9" font-family="monospace" font-weight="600" fill="#d97706">spaCy: 6</text>
+<rect x="120" y="222.5" width="0.0" height="10" fill="#2563eb" rx="2"/>
+<text x="125.0" y="230.5" font-size="9" font-family="monospace" font-weight="600" fill="#2563eb">BERT: 0</text>
+<text x="108" y="252.125" font-size="11" font-weight="600" fill="#1a1a18" text-anchor="end">MONEY</text>
+<rect x="120" y="234.125" width="32.77777777777778" height="10" fill="#e4e4e7" rx="2"/>
+<text x="157.77777777777777" y="242.125" font-size="9" font-family="monospace" fill="#71717a">GT: 1</text>
+<rect x="120" y="246.125" width="32.77777777777778" height="10" fill="#d97706" rx="2"/>
+<text x="157.77777777777777" y="254.125" font-size="9" font-family="monospace" font-weight="600" fill="#d97706">spaCy: 1</text>
+<rect x="120" y="258.125" width="0.0" height="10" fill="#2563eb" rx="2"/>
+<text x="125.0" y="266.125" font-size="9" font-family="monospace" font-weight="600" fill="#2563eb">BERT: 0</text>
+<text x="108" y="287.75" font-size="11" font-weight="600" fill="#1a1a18" text-anchor="end">PERCENT</text>
+<rect x="120" y="269.75" width="32.77777777777778" height="10" fill="#e4e4e7" rx="2"/>
+<text x="157.77777777777777" y="277.75" font-size="9" font-family="monospace" fill="#71717a">GT: 1</text>
+<rect x="120" y="281.75" width="32.77777777777778" height="10" fill="#d97706" rx="2"/>
+<text x="157.77777777777777" y="289.75" font-size="9" font-family="monospace" font-weight="600" fill="#d97706">spaCy: 1</text>
+<rect x="120" y="293.75" width="0.0" height="10" fill="#2563eb" rx="2"/>
+<text x="125.0" y="301.75" font-size="9" font-family="monospace" font-weight="600" fill="#2563eb">BERT: 0</text>
+<text x="108" y="323.375" font-size="11" font-weight="600" fill="#1a1a18" text-anchor="end">ORDINAL</text>
+<rect x="120" y="305.375" width="65.55555555555556" height="10" fill="#e4e4e7" rx="2"/>
+<text x="190.55555555555554" y="313.375" font-size="9" font-family="monospace" fill="#71717a">GT: 2</text>
+<rect x="120" y="317.375" width="65.55555555555556" height="10" fill="#d97706" rx="2"/>
+<text x="190.55555555555554" y="325.375" font-size="9" font-family="monospace" font-weight="600" fill="#d97706">spaCy: 2</text>
+<rect x="120" y="329.375" width="0.0" height="10" fill="#2563eb" rx="2"/>
+<text x="125.0" y="337.375" font-size="9" font-family="monospace" font-weight="600" fill="#2563eb">BERT: 0</text>
+<rect x="120" y="362" width="10" height="10" fill="#e4e4e7" rx="2"/>
+<text x="134" y="370" font-size="10" fill="#71717a">Ground Truth Instances</text>
+<rect x="290" y="362" width="10" height="10" fill="#d97706" rx="2"/>
+<text x="304" y="370" font-size="10" fill="#1a1a18">spaCy True Positives</text>
+<rect x="450" y="362" width="10" height="10" fill="#2563eb" rx="2"/>
+<text x="464" y="370" font-size="10" fill="#1a1a18">BERT True Positives</text>
+</svg>

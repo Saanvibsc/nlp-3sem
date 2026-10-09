@@ -7,7 +7,7 @@ import {
 } from '../services/nlpEngine';
 import { EntityHighlighter } from '../components/EntityHighlighter';
 import { MetricCard } from '../components/MetricCard';
-import { Play, GitCompare, Zap, Cpu, Award, BarChart3 } from 'lucide-react';
+import { Play, GitCompare, Zap, Cpu, Award } from 'lucide-react';
 
 export const ComparisonView: React.FC = () => {
   const [inputText, setInputText] = useState<string>(
@@ -72,7 +72,7 @@ export const ComparisonView: React.FC = () => {
             <Award className="w-4 h-4 text-[#d97706]" />
             Official Benchmark Evaluation Scores
           </h3>
-          <span className="label !opacity-70 font-mono">20 Ground-Truth Articles</span>
+          <span className="label !opacity-70 font-mono">20 Ground-Truth Articles (47 Entities)</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -91,9 +91,9 @@ export const ComparisonView: React.FC = () => {
                   <td className="py-2.5 px-3 font-sans font-medium text-[#1a1a18]">
                     spaCy (en_core_web_sm)
                   </td>
-                  <td className="py-2.5 px-3 text-center tabular-nums">0.978</td>
-                  <td className="py-2.5 px-3 text-center tabular-nums">0.978</td>
-                  <td className="py-2.5 px-3 text-center font-medium tabular-nums text-[#d97706]">0.978</td>
+                  <td className="py-2.5 px-3 text-center tabular-nums">0.979</td>
+                  <td className="py-2.5 px-3 text-center tabular-nums">0.979</td>
+                  <td className="py-2.5 px-3 text-center font-medium tabular-nums text-[#d97706]">0.979</td>
                 </tr>
                 <tr>
                   <td className="py-2.5 px-3 font-sans font-medium text-[#1a1a18]">
@@ -107,40 +107,46 @@ export const ComparisonView: React.FC = () => {
             </table>
           </div>
 
-          {/* Bar Chart Visualization */}
+          {/* Metric Comparison Bar Chart */}
           <div className="space-y-3 text-xs">
             <div className="label font-medium !opacity-80 flex items-center justify-between">
               <span>Metric Visualization</span>
-              <span>spaCy (Amber) vs BERT (Dark Ink)</span>
+              <span>spaCy (97.9%) vs BERT (26.4%)</span>
             </div>
+            
             {[
-              { name: 'Precision', spacy: 0.978, bert: 0.267 },
-              { name: 'Recall', spacy: 0.978, bert: 0.261 },
-              { name: 'F1 Score', spacy: 0.978, bert: 0.264 },
+              { name: 'Precision', spacy: 0.979, bert: 0.267 },
+              { name: 'Recall', spacy: 0.979, bert: 0.261 },
+              { name: 'F1-Score', spacy: 0.979, bert: 0.264 },
             ].map(m => (
               <div key={m.name} className="space-y-1">
-                <div className="flex justify-between font-mono text-[11px]">
-                  <span className="font-medium text-[#1a1a18]">{m.name}</span>
-                  <span className="text-[#1a1a18]/70">
-                    spaCy: <b className="text-[#d97706]">{m.spacy}</b> · BERT: <b>{m.bert}</b>
-                  </span>
+                <div className="flex justify-between font-mono text-[11px] text-[#1a1a18]/70">
+                  <span className="font-sans font-medium text-[#1a1a18]">{m.name}</span>
+                  <span>spaCy: {(m.spacy * 100).toFixed(1)}% · BERT: {(m.bert * 100).toFixed(1)}%</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-[#f7f7f5] rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="bg-[#d97706] h-full rounded-full"
-                      style={{ width: `${Math.round(m.spacy * 100)}%` }}
-                    />
-                  </div>
-                  <div className="bg-[#f7f7f5] rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="bg-[#1a1a18] h-full rounded-full"
-                      style={{ width: `${Math.round(m.bert * 100)}%` }}
-                    />
-                  </div>
+                <div className="h-2 w-full bg-[#f7f7f5] rounded-full overflow-hidden flex gap-1">
+                  <div
+                    className="h-full bg-[#d97706] rounded-full"
+                    style={{ width: `${m.spacy * 100}%` }}
+                    title={`spaCy: ${(m.spacy * 100).toFixed(1)}%`}
+                  />
+                  <div
+                    className="h-full bg-[#1a1a18]/40 rounded-full"
+                    style={{ width: `${m.bert * 100}%` }}
+                    title={`BERT: ${(m.bert * 100).toFixed(1)}%`}
+                  />
                 </div>
               </div>
             ))}
+
+            <div className="flex items-center justify-between text-[10px] font-mono text-[#1a1a18]/50 pt-2 border-t border-[rgba(26,26,24,0.06)]">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#d97706]" /> spaCy (en_core_web_sm)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#1a1a18]/40" /> BERT (dslim/bert-base-NER)
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -215,7 +221,7 @@ export const ComparisonView: React.FC = () => {
                 </span>
               </div>
 
-              <EntityHighlighter text={inputText} entities={spacyEnts} showConfidence={false} />
+              <EntityHighlighter text={inputText} entities={spacyEnts} showConfidence={false} showToolbar={false} />
 
               <div className="overflow-x-auto border border-[rgba(26,26,24,0.08)] rounded-lg">
                 <table className="w-full text-left text-xs font-mono">
@@ -262,7 +268,7 @@ export const ComparisonView: React.FC = () => {
                 </span>
               </div>
 
-              <EntityHighlighter text={inputText} entities={bertEnts} showConfidence={true} />
+              <EntityHighlighter text={inputText} entities={bertEnts} showConfidence={true} showToolbar={false} />
 
               <div className="overflow-x-auto border border-[rgba(26,26,24,0.08)] rounded-lg">
                 <table className="w-full text-left text-xs font-mono">
@@ -322,7 +328,7 @@ export const ComparisonView: React.FC = () => {
               </tr>
               <tr>
                 <td className="py-3 px-4 font-medium text-[#1a1a18]">Benchmark F1 Score</td>
-                <td className="py-3 px-4 font-medium text-[#d97706] tabular-nums">0.978 (TP: 45, FP: 1, FN: 1)</td>
+                <td className="py-3 px-4 font-medium text-[#d97706] tabular-nums">0.979 (TP: 46, FP: 1, FN: 1)</td>
                 <td className="py-3 px-4 font-medium text-[#1a1a18] tabular-nums">0.264 (TP: 12, FP: 33, FN: 34)</td>
               </tr>
               <tr>

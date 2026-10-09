@@ -291,7 +291,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
             <Award className="w-4 h-4 text-[#d97706]" />
             Official Benchmark Comparison & Error Reduction Table
           </h3>
-          <span className="label !opacity-70">20 Human-Verified Articles (46 Tokens)</span>
+          <span className="label !opacity-70">20 Human-Verified Articles (47 Entities)</span>
         </div>
 
         <div className="overflow-x-auto border border-[rgba(26,26,24,0.08)] rounded-lg">
@@ -313,20 +313,20 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                 <td className="py-3 px-4 font-sans font-medium text-[#1a1a18]">
                   spaCy (Baseline en_core_web_sm)
                 </td>
-                <td className="py-3 px-4 text-center tabular-nums">45</td>
+                <td className="py-3 px-4 text-center tabular-nums">46</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706]">1</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706]">1</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706] font-medium">2</td>
-                <td className="py-3 px-4 tabular-nums">0.978</td>
-                <td className="py-3 px-4 tabular-nums">0.978</td>
-                <td className="py-3 px-4 font-medium tabular-nums text-[#1a1a18]">0.978</td>
+                <td className="py-3 px-4 tabular-nums">0.979</td>
+                <td className="py-3 px-4 tabular-nums">0.979</td>
+                <td className="py-3 px-4 font-medium tabular-nums text-[#1a1a18]">0.979</td>
               </tr>
               <tr className={selectedEngine === 'spaCy' && isCorrectionActive ? 'bg-[#f7f7f5] font-medium' : ''}>
                 <td className="py-3 px-4 font-sans font-medium text-[#1a1a18] flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   spaCy (Corrected & Disambiguated)
                 </td>
-                <td className="py-3 px-4 text-center tabular-nums font-medium text-emerald-700">46</td>
+                <td className="py-3 px-4 text-center tabular-nums font-medium text-emerald-700">47</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700">0</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700">0</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700 font-medium">0</td>
@@ -351,7 +351,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   BERT (Corrected & Subword Reconstructed)
                 </td>
-                <td className="py-3 px-4 text-center tabular-nums font-medium text-emerald-700">46</td>
+                <td className="py-3 px-4 text-center tabular-nums font-medium text-emerald-700">47</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700">0</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700">0</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700 font-medium">0</td>
@@ -393,7 +393,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
         <MetricCard
           label="Accuracy"
           value={`${(activeReport.accuracy * 100).toFixed(1)}%`}
-          foot={`${activeReport.classMetrics.reduce((a, c) => a + c.tp, 0)} / 46 matched`}
+          foot={`${activeReport.classMetrics.reduce((a, c) => a + c.tp, 0)} / ${activeReport.totalGroundTruth} matched`}
           trend="Exact Match"
         />
       </div>
