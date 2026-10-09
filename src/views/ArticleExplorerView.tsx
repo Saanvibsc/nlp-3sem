@@ -71,13 +71,13 @@ export const ArticleExplorerView: React.FC<ArticleExplorerViewProps> = ({
         <div className="max-w-3xl">
           <span className="label !opacity-100 text-[#d97706] flex items-center gap-1.5 font-medium mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]" />
-            Interactive News Corpus Explorer
+            Browse 150 News Stories
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-[#1a1a18] leading-[1.05] tracking-tight mb-3">
             Article Explorer
           </h1>
           <p className="font-serif text-base sm:text-lg text-[#1a1a18]/70 max-w-2xl leading-relaxed mb-6">
-            Click any news article to inspect its live entity classification, token spans, confidence distributions, and model predictions.
+            Click any article in the library to see what people, places, dates, and companies the AI finds inside.
           </p>
         </div>
 

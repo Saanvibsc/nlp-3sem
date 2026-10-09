@@ -277,16 +277,16 @@ export const NerWorkbenchView: React.FC<NerWorkbenchViewProps> = ({ initialText,
         <div>
           <span className="label !opacity-100 text-[#d97706] flex items-center gap-1.5 font-medium mb-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]" />
-            NER Workbench
+            Live Testing Lab
           </span>
           <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#1a1a18] leading-tight tracking-tight">
-            Information Extraction Engine
+            Interactive Entity Workbench
           </h1>
+          <p className="text-xs text-[#1a1a18]/65 font-sans mt-0.5">
+            Type or paste any text to see what people, places, dates, and companies the AI spots in real time.
+          </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs font-mono text-[#1a1a18]/70 hidden md:block">
-            <span>spaCy (en_core_web_sm) & BERT (dslim/bert-base-NER)</span>
-          </div>
           {onNavigateToUpload && (
             <button
               onClick={onNavigateToUpload}

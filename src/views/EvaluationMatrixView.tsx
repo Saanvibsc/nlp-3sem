@@ -3,7 +3,6 @@ import {
   GroundTruthArticle,
   generateDetailedEvaluation,
   ConfusionMatrixReport,
-  ManualMatrixCorrection,
   LABEL_COLORS,
   NOTEBOOK_DATA,
 } from '../services/nlpEngine';
@@ -18,12 +17,6 @@ import {
   XCircle,
   HelpCircle,
   TrendingUp,
-  Sparkles,
-  RotateCcw,
-  Check,
-  ShieldCheck,
-  Sliders,
-  ArrowRight,
 } from 'lucide-react';
 
 interface EvaluationMatrixViewProps {
@@ -34,8 +27,6 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
   groundTruthData,
 }) => {
   const [selectedEngine, setSelectedEngine] = useState<'spaCy' | 'BERT' | 'Trained BERT' | 'AC Automaton'>('spaCy');
-  const [isCorrectionActive, setIsCorrectionActive] = useState<boolean>(false);
-  const [manualCorrections, setManualCorrections] = useState<ManualMatrixCorrection[]>([]);
   const [selectedCell, setSelectedCell] = useState<{
     actual: string;
     pred: string;
@@ -44,21 +35,15 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
   const [benchmarkSearch, setBenchmarkSearch] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'matrix' | 'errors' | 'confidence'>('matrix');
 
-  // Compute detailed evaluation report with error correction & manual cell fixes
+  // Compute detailed evaluation report for the selected model
   const activeReport = useMemo<ConfusionMatrixReport>(() => {
     return generateDetailedEvaluation(
       groundTruthData,
       selectedEngine,
-      isCorrectionActive,
-      manualCorrections
+      false,
+      []
     );
-  }, [groundTruthData, selectedEngine, isCorrectionActive, manualCorrections]);
-
-  // Compute comparison reports for the overview table
-  const spacyBaseline = useMemo(() => generateDetailedEvaluation(groundTruthData, 'spaCy', false), [groundTruthData]);
-  const spacyCorrected = useMemo(() => generateDetailedEvaluation(groundTruthData, 'spaCy', true), [groundTruthData]);
-  const bertBaseline = useMemo(() => generateDetailedEvaluation(groundTruthData, 'BERT', false), [groundTruthData]);
-  const bertCorrected = useMemo(() => generateDetailedEvaluation(groundTruthData, 'BERT', true), [groundTruthData]);
+  }, [groundTruthData, selectedEngine]);
 
   // Calculate current total errors
   const currentTotalErrors = useMemo(() => {
@@ -70,37 +55,6 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
     }
     return fp + fn;
   }, [activeReport]);
-
-  const baselineErrors = selectedEngine === 'spaCy' ? 2 : 67;
-
-  // Handler for manual cell correction
-  const handleCorrectSelectedCell = () => {
-    if (!selectedCell || selectedCell.count <= 0) return;
-    const { actual, pred, count } = selectedCell;
-    if (actual === pred) return; // already diagonal
-
-    const newCorrection: ManualMatrixCorrection = {
-      actual: actual.includes('O') ? pred : actual,
-      fromPred: pred,
-      toPred: actual.includes('O') ? pred : actual,
-      count,
-    };
-
-    setManualCorrections(prev => [...prev, newCorrection]);
-    setSelectedCell(null);
-  };
-
-  const handleResetCorrections = () => {
-    setIsCorrectionActive(false);
-    setManualCorrections([]);
-    setSelectedCell(null);
-  };
-
-  const handleApplyFullCorrection = () => {
-    setIsCorrectionActive(true);
-    setManualCorrections([]);
-    setSelectedCell(null);
-  };
 
   // Filter benchmark articles
   const filteredArticles = useMemo(() => {
@@ -123,13 +77,13 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
         <div className="max-w-3xl">
           <span className="label !opacity-100 text-[#d97706] flex items-center gap-1.5 font-medium mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]" />
-            Gold-Standard Benchmark Evaluation & Error Mitigation
+            Easy-to-Understand AI Accuracy Check
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-[#1a1a18] leading-[1.05] tracking-tight mb-2">
-            Confusion Matrix & Evaluation
+            Confusion Matrix: What the AI Got Right & Where It Got Mixed Up
           </h1>
           <p className="font-serif text-base sm:text-lg text-[#1a1a18]/70 max-w-2xl leading-relaxed mb-4">
-            Evaluate raw model misclassifications and apply error reduction to make real-time corrections in the confusion matrix.
+            Think of this page like an AI report card. It shows you exactly what names and dates the AI found, where it mistook one thing for another, and what it missed completely. No confusing math jargon.
           </p>
         </div>
 
@@ -146,7 +100,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                 : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
             }`}
           >
-            spaCy
+            spaCy (Fast & Accurate ~98%)
           </button>
           <button
             onClick={() => {
@@ -159,7 +113,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                 : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
             }`}
           >
-            BERT (Baseline)
+            BERT (Older Basic Model ~26%)
           </button>
           <button
             onClick={() => {
@@ -185,101 +139,71 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                 : 'text-[#1a1a18]/60 hover:text-[#1a1a18]'
             }`}
           >
-            Ensemble / AC
+            Exact Match / AC
           </button>
         </div>
       </div>
 
-      {/* ERROR REDUCTION & MATRIX CORRECTION CONTROL PANEL */}
-      <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[rgba(26,26,24,0.08)]">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="label !opacity-100 text-[#d97706] font-medium flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#d97706]" />
-                Interactive Error Mitigation & Matrix Correction
-              </span>
-              {(isCorrectionActive || manualCorrections.length > 0) && (
-                <span className="badge badge-accent">
-                  Corrections Applied
-                </span>
-              )}
+      {/* QUICK GUIDE: HOW TO READ THIS IN 30 SECONDS */}
+      <div className="card p-5 bg-[#fafaf8] border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-[rgba(26,26,24,0.06)]">
+          <HelpCircle className="w-4 h-4 text-[#d97706]" />
+          <h3 className="font-serif text-base font-medium text-[#1a1a18]">
+            Quick Guide: How to Read a Confusion Matrix in Plain English
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-sans">
+          <div className="p-3 bg-white border border-[rgba(26,26,24,0.06)] rounded-lg space-y-1">
+            <div className="flex items-center gap-1.5 font-semibold text-emerald-800">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Right Guesses (True Positive)</span>
             </div>
-            <h3 className="font-serif text-xl font-normal text-[#1a1a18]">
-              {isCorrectionActive || manualCorrections.length > 0
-                ? `Errors Reduced: ${baselineErrors} → ${currentTotalErrors} (${baselineErrors - currentTotalErrors} Resolved)`
-                : `Raw Baseline Errors Detected: ${currentTotalErrors} (${selectedEngine === 'spaCy' ? '1 FP, 1 FN' : '33 FP, 34 FN'})`}
-            </h3>
-            <p className="text-xs font-mono text-[#1a1a18]/60">
-              {isCorrectionActive || manualCorrections.length > 0
-                ? 'WordPiece fragment reconstruction & entity boundary disambiguation active in the matrix.'
-                : 'Click "Reduce Errors & Correct Matrix" or select individual error cells below to apply corrections.'}
+            <p className="text-[#1a1a18]/70 leading-relaxed text-[11px]">
+              The AI was completely right! Example: It saw "Google" and correctly recognized it as a company.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            {isCorrectionActive || manualCorrections.length > 0 ? (
-              <button
-                onClick={handleResetCorrections}
-                className="btn btn-secondary text-xs px-3.5 py-2 flex items-center gap-1.5 cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset to Baseline
-              </button>
-            ) : (
-              <button
-                onClick={handleApplyFullCorrection}
-                className="btn btn-primary text-xs px-4 py-2 flex items-center gap-2"
-              >
-                <Check className="w-4 h-4" />
-                Reduce Errors & Correct Matrix
-              </button>
-            )}
+          <div className="p-3 bg-white border border-[rgba(26,26,24,0.06)] rounded-lg space-y-1">
+            <div className="flex items-center gap-1.5 font-semibold text-[#d97706]">
+              <XCircle className="w-3.5 h-3.5 text-[#d97706]" />
+              <span>False Alarms (False Positive)</span>
+            </div>
+            <p className="text-[#1a1a18]/70 leading-relaxed text-[11px]">
+              The AI guessed wrong! It flagged a normal word, or called a city a company.
+            </p>
+          </div>
 
-            <button
-              onClick={() => setIsCorrectionActive(!isCorrectionActive)}
-              className={`px-3.5 py-2 border rounded-lg font-mono text-xs transition-all flex items-center gap-2 cursor-pointer ${
-                isCorrectionActive
-                  ? 'bg-[#1a1a18] text-white border-[#1a1a18]'
-                  : 'bg-[#f7f7f5] text-[#1a1a18] border-[rgba(26,26,24,0.08)] hover:bg-white'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${isCorrectionActive ? 'bg-[#d97706]' : 'bg-[#1a1a18]/30'}`} />
-              Correction Mode: {isCorrectionActive ? 'ON' : 'OFF'}
-            </button>
+          <div className="p-3 bg-white border border-[rgba(26,26,24,0.06)] rounded-lg space-y-1">
+            <div className="flex items-center gap-1.5 font-semibold text-red-700">
+              <AlertOctagon className="w-3.5 h-3.5 text-red-600" />
+              <span>Missed Words (False Negative)</span>
+            </div>
+            <p className="text-[#1a1a18]/70 leading-relaxed text-[11px]">
+              A real name or date was right there in the article, but the AI walked past without noticing.
+            </p>
+          </div>
+
+          <div className="p-3 bg-white border border-[rgba(26,26,24,0.06)] rounded-lg space-y-1">
+            <div className="flex items-center gap-1.5 font-semibold text-[#1a1a18]">
+              <Grid3X3 className="w-3.5 h-3.5 text-[#d97706]" />
+              <span>How the Table Works</span>
+            </div>
+            <p className="text-[#1a1a18]/70 leading-relaxed text-[11px]">
+              Look down the left for what was real. Look across the top for what the AI guessed. The center diagonal shows 100% correct answers!
+            </p>
           </div>
         </div>
 
-        {/* Correction Explanation Breakdown */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-xs font-mono">
-          <div className="p-3.5 rounded-lg border border-[rgba(26,26,24,0.08)] bg-[#f7f7f5] space-y-1">
-            <div className="label text-[10px] text-[#d97706]">01. Boundary Disambiguation</div>
-            <div className="font-medium text-[#1a1a18]">Uttarakhand (Article #1)</div>
-            <div className="text-[11px] text-[#1a1a18]/70 font-sans">
-              {isCorrectionActive || manualCorrections.some(c => c.actual === 'LOCATION')
-                ? '✓ Re-classified from ORG to LOCATION (TP: +1, FP: 0, FN: 0)'
-                : '• Currently misclassified as ORG in school board context'}
-            </div>
+        {/* The 3 scores explained in human language */}
+        <div className="p-3 bg-white border border-[rgba(26,26,24,0.06)] rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs text-[#1a1a18]/75">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-[#1a1a18]">The 3 Key Scores:</span>
+            <span><b>Trust (Precision):</b> When it speaks up, how often is it right?</span>
           </div>
-
-          <div className="p-3.5 rounded-lg border border-[rgba(26,26,24,0.08)] bg-[#f7f7f5] space-y-1">
-            <div className="label text-[10px] text-[#d97706]">02. Subword Detokenization</div>
-            <div className="font-medium text-[#1a1a18]">33 False Positives Filtered</div>
-            <div className="text-[11px] text-[#1a1a18]/70 font-sans">
-              {isCorrectionActive
-                ? '✓ Reconstructed WordPiece fragments (##icci, ##rabanjan, bo)'
-                : '• Unstitched subword pieces produce 33 spurious tokens'}
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-lg border border-[rgba(26,26,24,0.08)] bg-[#f7f7f5] space-y-1">
-            <div className="label text-[10px] text-[#d97706]">03. OntoNotes Schema Mapping</div>
-            <div className="font-medium text-[#1a1a18]">34 False Negatives Restored</div>
-            <div className="text-[11px] text-[#1a1a18]/70 font-sans">
-              {isCorrectionActive
-                ? '✓ Captured 18 OntoNotes classes (Dates, Numbers, Money, Percent)'
-                : '• CoNLL-03 limitation leaves 34 numerical/temporal entities missed'}
-            </div>
+          <div className="flex items-center gap-4">
+            <span><b>Catch Rate (Recall):</b> Out of 100 real names, how many did it spot?</span>
+            <span><b>Overall Grade (F1):</b> The final balanced score out of 100%.</span>
           </div>
         </div>
       </div>
@@ -289,75 +213,75 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
         <div className="flex items-center justify-between border-b border-[rgba(26,26,24,0.08)] pb-3">
           <h3 className="font-serif text-base font-medium text-[#1a1a18] flex items-center gap-2">
             <Award className="w-4 h-4 text-[#d97706]" />
-            Official Benchmark Comparison & Error Reduction Table
+            Side-by-Side Model Comparison
           </h3>
-          <span className="label !opacity-70">20 Human-Verified Articles (47 Entities)</span>
+          <span className="label !opacity-70">Tested on 20 Real Stories (47 Verified Names & Numbers)</span>
         </div>
 
         <div className="overflow-x-auto border border-[rgba(26,26,24,0.08)] rounded-lg">
           <table className="w-full text-left text-xs font-mono">
             <thead className="bg-[#f7f7f5] border-b border-[rgba(26,26,24,0.08)] text-[#1a1a18]/60 uppercase text-[11px] font-medium">
               <tr>
-                <th className="py-2.5 px-4">Model & Pipeline State</th>
-                <th className="py-2.5 px-4 text-center">True Positives</th>
-                <th className="py-2.5 px-4 text-center">False Positives</th>
-                <th className="py-2.5 px-4 text-center">False Negatives</th>
-                <th className="py-2.5 px-4 text-center">Total Errors</th>
-                <th className="py-2.5 px-4">Precision</th>
-                <th className="py-2.5 px-4">Recall</th>
-                <th className="py-2.5 px-4 font-medium text-[#1a1a18]">F1 Score</th>
+                <th className="py-2.5 px-4">AI Model</th>
+                <th className="py-2.5 px-4 text-center">Right Guesses</th>
+                <th className="py-2.5 px-4 text-center">False Alarms</th>
+                <th className="py-2.5 px-4 text-center">Missed Words</th>
+                <th className="py-2.5 px-4 text-center">Total Mistakes</th>
+                <th className="py-2.5 px-4">Trust Score (Precision)</th>
+                <th className="py-2.5 px-4">Catch Rate (Recall)</th>
+                <th className="py-2.5 px-4 font-medium text-[#1a1a18]">Overall Grade (F1)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(26,26,24,0.06)] bg-white text-xs">
-              <tr className={selectedEngine === 'spaCy' && !isCorrectionActive ? 'bg-[#f7f7f5] font-medium' : ''}>
+              <tr className={selectedEngine === 'spaCy' ? 'bg-[#f7f7f5] font-medium' : ''}>
                 <td className="py-3 px-4 font-sans font-medium text-[#1a1a18]">
-                  spaCy (Baseline en_core_web_sm)
+                  spaCy (Default AI Model)
                 </td>
-                <td className="py-3 px-4 text-center tabular-nums">46</td>
+                <td className="py-3 px-4 text-center tabular-nums font-medium text-emerald-700">46</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706]">1</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706]">1</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706] font-medium">2</td>
-                <td className="py-3 px-4 tabular-nums">0.979</td>
-                <td className="py-3 px-4 tabular-nums">0.979</td>
-                <td className="py-3 px-4 font-medium tabular-nums text-[#1a1a18]">0.979</td>
+                <td className="py-3 px-4 tabular-nums">97.9%</td>
+                <td className="py-3 px-4 tabular-nums">97.9%</td>
+                <td className="py-3 px-4 font-medium tabular-nums text-[#1a1a18]">97.9%</td>
               </tr>
-              <tr className={selectedEngine === 'spaCy' && isCorrectionActive ? 'bg-[#f7f7f5] font-medium' : ''}>
-                <td className="py-3 px-4 font-sans font-medium text-[#1a1a18] flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  spaCy (Corrected & Disambiguated)
-                </td>
-                <td className="py-3 px-4 text-center tabular-nums font-medium text-emerald-700">47</td>
-                <td className="py-3 px-4 text-center tabular-nums text-emerald-700">0</td>
-                <td className="py-3 px-4 text-center tabular-nums text-emerald-700">0</td>
-                <td className="py-3 px-4 text-center tabular-nums text-emerald-700 font-medium">0</td>
-                <td className="py-3 px-4 tabular-nums text-emerald-700">1.000</td>
-                <td className="py-3 px-4 tabular-nums text-emerald-700">1.000</td>
-                <td className="py-3 px-4 font-medium tabular-nums text-emerald-700">1.000</td>
-              </tr>
-              <tr className={selectedEngine === 'BERT' && !isCorrectionActive ? 'bg-[#f7f7f5] font-medium' : ''}>
+              <tr className={selectedEngine === 'BERT' ? 'bg-[#f7f7f5] font-medium' : ''}>
                 <td className="py-3 px-4 font-sans font-medium text-[#1a1a18]">
-                  BERT (Baseline Untuned dslim/bert-base-NER)
+                  BERT (Basic Untuned Model)
                 </td>
                 <td className="py-3 px-4 text-center tabular-nums">12</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706]">33</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706]">34</td>
                 <td className="py-3 px-4 text-center tabular-nums text-[#d97706] font-medium">67</td>
-                <td className="py-3 px-4 tabular-nums">0.267</td>
-                <td className="py-3 px-4 tabular-nums">0.261</td>
-                <td className="py-3 px-4 font-medium tabular-nums text-[#1a1a18]">0.264</td>
+                <td className="py-3 px-4 tabular-nums">26.7%</td>
+                <td className="py-3 px-4 tabular-nums">26.1%</td>
+                <td className="py-3 px-4 font-medium tabular-nums text-[#1a1a18]">26.4%</td>
               </tr>
-              <tr className={selectedEngine === 'BERT' && isCorrectionActive ? 'bg-[#f7f7f5] font-medium' : ''}>
+              <tr className={selectedEngine === 'Trained BERT' ? 'bg-[#f7f7f5] font-medium' : ''}>
                 <td className="py-3 px-4 font-sans font-medium text-[#1a1a18] flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  BERT (Corrected & Subword Reconstructed)
+                  Trained BERT (Fine-Tuned OntoNotes)
+                </td>
+                <td className="py-3 px-4 text-center tabular-nums font-medium text-emerald-700">46</td>
+                <td className="py-3 px-4 text-center tabular-nums text-[#d97706]">1</td>
+                <td className="py-3 px-4 text-center tabular-nums text-[#d97706]">1</td>
+                <td className="py-3 px-4 text-center tabular-nums text-[#d97706] font-medium">2</td>
+                <td className="py-3 px-4 tabular-nums text-emerald-700">97.9%</td>
+                <td className="py-3 px-4 tabular-nums text-emerald-700">97.9%</td>
+                <td className="py-3 px-4 font-medium tabular-nums text-emerald-700">97.9%</td>
+              </tr>
+              <tr className={selectedEngine === 'AC Automaton' ? 'bg-[#f7f7f5] font-medium' : ''}>
+                <td className="py-3 px-4 font-sans font-medium text-[#1a1a18] flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Aho-Corasick + AI Ensemble
                 </td>
                 <td className="py-3 px-4 text-center tabular-nums font-medium text-emerald-700">47</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700">0</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700">0</td>
                 <td className="py-3 px-4 text-center tabular-nums text-emerald-700 font-medium">0</td>
-                <td className="py-3 px-4 tabular-nums text-emerald-700">1.000</td>
-                <td className="py-3 px-4 tabular-nums text-emerald-700">1.000</td>
-                <td className="py-3 px-4 font-medium tabular-nums text-emerald-700">1.000</td>
+                <td className="py-3 px-4 tabular-nums text-emerald-700">100.0%</td>
+                <td className="py-3 px-4 tabular-nums text-emerald-700">100.0%</td>
+                <td className="py-3 px-4 font-medium tabular-nums text-emerald-700">100.0%</td>
               </tr>
             </tbody>
           </table>
@@ -367,34 +291,34 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
       {/* Top Level Metric Cards for Active Engine */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard
-          label={`${selectedEngine} F1`}
+          label={`${selectedEngine} Overall Grade (F1)`}
           value={activeReport.macroAvg.f1.toFixed(3)}
-          foot={isCorrectionActive ? 'Errors eliminated' : `Errors: ${currentTotalErrors}`}
-          trend="F1 Metric"
+          foot={`Mistakes: ${currentTotalErrors}`}
+          trend="Score out of 1.0"
         />
         <MetricCard
-          label="Precision"
-          value={activeReport.macroAvg.precision.toFixed(3)}
-          foot={`TP: ${activeReport.totalPredictions - activeReport.classMetrics.reduce((a, c) => a + c.fp, 0)} · FP: ${activeReport.classMetrics.reduce((a, c) => a + c.fp, 0)}`}
-          trend="TP / (TP+FP)"
+          label="Trust Score (Precision)"
+          value={`${(activeReport.macroAvg.precision * 100).toFixed(1)}%`}
+          foot={`Correct: ${activeReport.totalPredictions - activeReport.classMetrics.reduce((a, c) => a + c.fp, 0)} · False alarms: ${activeReport.classMetrics.reduce((a, c) => a + c.fp, 0)}`}
+          trend="How sure you can be"
         />
         <MetricCard
-          label="Recall"
-          value={activeReport.macroAvg.recall.toFixed(3)}
-          foot={`TP: ${activeReport.classMetrics.reduce((a, c) => a + c.tp, 0)} · FN: ${activeReport.classMetrics.reduce((a, c) => a + c.fn, 0)}`}
-          trend="TP / (TP+FN)"
+          label="Catch Rate (Recall)"
+          value={`${(activeReport.macroAvg.recall * 100).toFixed(1)}%`}
+          foot={`Found: ${activeReport.classMetrics.reduce((a, c) => a + c.tp, 0)} · Missed: ${activeReport.classMetrics.reduce((a, c) => a + c.fn, 0)}`}
+          trend="How much it found"
         />
         <MetricCard
-          label="Total Errors"
+          label="Total Mistakes"
           value={currentTotalErrors}
-          foot={currentTotalErrors === 0 ? 'Zero-Error State' : `FP: ${activeReport.classMetrics.reduce((a, c) => a + c.fp, 0)}, FN: ${activeReport.classMetrics.reduce((a, c) => a + c.fn, 0)}`}
-          trend="FP + FN"
+          foot={currentTotalErrors === 0 ? 'Zero mistakes!' : `False alarms: ${activeReport.classMetrics.reduce((a, c) => a + c.fp, 0)}, Missed: ${activeReport.classMetrics.reduce((a, c) => a + c.fn, 0)}`}
+          trend="Confusions + Missed"
         />
         <MetricCard
-          label="Accuracy"
+          label="Exact Accuracy"
           value={`${(activeReport.accuracy * 100).toFixed(1)}%`}
-          foot={`${activeReport.classMetrics.reduce((a, c) => a + c.tp, 0)} / ${activeReport.totalGroundTruth} matched`}
-          trend="Exact Match"
+          foot={`${activeReport.classMetrics.reduce((a, c) => a + c.tp, 0)} out of ${activeReport.totalGroundTruth} correct`}
+          trend="100% Right Answers"
         />
       </div>
 
@@ -408,7 +332,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               : 'border-transparent text-[#1a1a18]/60 hover:text-[#1a1a18]'
           }`}
         >
-          <Grid3X3 className="w-3.5 h-3.5" /> Confusion Matrix & Correction Heatmap
+          <Grid3X3 className="w-3.5 h-3.5" /> 1. The Confusion Grid (Right & Wrong Guesses)
         </button>
         <button
           onClick={() => setActiveTab('errors')}
@@ -418,7 +342,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               : 'border-transparent text-[#1a1a18]/60 hover:text-[#1a1a18]'
           }`}
         >
-          <AlertOctagon className="w-3.5 h-3.5" /> Error Analysis & Misclassifications
+          <AlertOctagon className="w-3.5 h-3.5" /> 2. Mistake Inspector (What was wrong & why)
         </button>
         <button
           onClick={() => setActiveTab('confidence')}
@@ -428,7 +352,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               : 'border-transparent text-[#1a1a18]/60 hover:text-[#1a1a18]'
           }`}
         >
-          <TrendingUp className="w-3.5 h-3.5" /> Confidence Diagnostics
+          <TrendingUp className="w-3.5 h-3.5" /> 3. How Sure The AI Was (Confidence Scores)
         </button>
       </div>
 
@@ -441,18 +365,18 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               <div>
                 <h3 className="font-serif text-base font-medium text-[#1a1a18] flex items-center gap-2">
                   <Grid3X3 className="w-4 h-4 text-[#d97706]" />
-                  Multi-Class Confusion Matrix ({selectedEngine})
+                  The Confusion Grid ({selectedEngine})
                 </h3>
-                <p className="text-xs text-[#1a1a18]/60 font-sans mt-0.5">
-                  Rows represent <b>Actual Ground Truth</b>; columns represent <b>{selectedEngine} Predictions</b>. Click any cell to inspect or correct.
+                <p className="text-xs text-[#1a1a18]/70 font-sans mt-0.5 max-w-2xl">
+                  Look down the left column for the <b>REAL answer</b>. Look across the top for what the <b>AI GUESSED</b>. Numbers in dark boxes down the diagonal are 100% correct hits. Orange boxes show where the AI got mixed up. Click any box to inspect or fix it!
                 </p>
               </div>
-              <div className="flex items-center gap-4 text-xs font-mono">
+              <div className="flex items-center gap-4 text-xs font-mono shrink-0">
                 <span className="flex items-center gap-1.5 text-[#1a1a18]">
-                  <span className="w-3 h-3 bg-[#1a1a18] rounded-xs"></span> Correct (TP)
+                  <span className="w-3 h-3 bg-[#1a1a18] rounded-xs"></span> ✓ Right Guess (Hit)
                 </span>
                 <span className="flex items-center gap-1.5 text-[#1a1a18]">
-                  <span className="w-3 h-3 bg-[#d97706]/20 border border-[#d97706]/40 rounded-xs"></span> Error / Discrepancy
+                  <span className="w-3 h-3 bg-[#d97706]/20 border border-[#d97706]/40 rounded-xs"></span> ⚠ Mix-Up (Mistake)
                 </span>
               </div>
             </div>
@@ -462,7 +386,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                 <thead>
                   <tr className="bg-[#f7f7f5] border-b border-[rgba(26,26,24,0.08)] text-[#1a1a18]/60 uppercase text-[11px] font-medium">
                     <th className="py-2.5 px-3 text-left w-36">
-                      Actual \ Pred
+                      Real Word \ AI Guess
                     </th>
                     {matrixClasses.map(cls => (
                       <th key={cls} className="py-2.5 px-2 font-medium whitespace-nowrap">
@@ -531,37 +455,28 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               </table>
             </div>
 
-            {/* INTERACTIVE CELL CORRECTION DRAWER */}
+            {/* CELL INSPECTION DRAWER */}
             {selectedCell && (
               <div className="bg-[#f7f7f5] border border-[rgba(26,26,24,0.08)] rounded-lg p-4 text-xs font-mono flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-[#1a1a18] uppercase">Selected Matrix Cell:</span>
-                    <span>Actual: <b className="text-[#d97706]">{selectedCell.actual}</b></span>
-                    <span>→ Predicted: <b className="text-[#1a1a18]">{selectedCell.pred}</b></span>
-                    <span>(<b>{selectedCell.count}</b> tokens)</span>
+                    <span className="font-medium text-[#1a1a18] uppercase">Selected Box:</span>
+                    <span>Real Word: <b className="text-[#d97706]">{selectedCell.actual}</b></span>
+                    <span>→ AI Guessed: <b className="text-[#1a1a18]">{selectedCell.pred}</b></span>
+                    <span>(<b>{selectedCell.count}</b> words)</span>
                   </div>
                   {selectedCell.actual !== selectedCell.pred && selectedCell.count > 0 ? (
                     <div className="text-[11px] text-[#1a1a18]/70 font-sans">
-                      Misclassification detected. Click <b>"Make Correction in Matrix"</b> to re-align this cell count to the true positive diagonal.
+                      The AI got mixed up here: words that were actually <b>{selectedCell.actual}</b> were labeled as <b>{selectedCell.pred}</b>.
                     </div>
                   ) : (
                     <div className="text-[11px] text-emerald-800 font-sans font-medium">
-                      ✓ Accurate true positive prediction cell.
+                      ✓ Correct match: {selectedCell.count} entities accurately classified as {selectedCell.actual}.
                     </div>
                   )}
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  {selectedCell.actual !== selectedCell.pred && selectedCell.count > 0 && (
-                    <button
-                      onClick={handleCorrectSelectedCell}
-                      className="btn btn-primary !py-1.5 !px-3 text-xs flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                      Make Correction in Matrix
-                    </button>
-                  )}
                   <button
                     onClick={() => setSelectedCell(null)}
                     className="btn btn-secondary !py-1.5 !px-3 text-xs cursor-pointer"
@@ -579,10 +494,10 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               <div>
                 <h3 className="font-serif text-base font-medium text-[#1a1a18] flex items-center gap-2">
                   <Award className="w-4 h-4 text-[#d97706]" />
-                  Per-Entity Classification Report ({selectedEngine})
+                  Report Card by Category ({selectedEngine})
                 </h3>
-                <p className="text-xs font-mono text-[#1a1a18]/60 mt-0.5">
-                  Precision, Recall, F1 and Support breakdown by entity category after active corrections.
+                <p className="text-xs text-[#1a1a18]/70 font-sans mt-0.5">
+                  See how dependable the AI is for People, Companies, Places, Dates, and Numbers.
                 </p>
               </div>
             </div>
@@ -591,14 +506,14 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               <table className="w-full text-left text-xs font-mono">
                 <thead className="bg-[#f7f7f5] border-b border-[rgba(26,26,24,0.08)] text-[#1a1a18]/60 uppercase text-[11px] font-medium">
                   <tr>
-                    <th className="py-2.5 px-4">Entity Class</th>
-                    <th className="py-2.5 px-3 text-center">TP</th>
-                    <th className="py-2.5 px-3 text-center">FP</th>
-                    <th className="py-2.5 px-3 text-center">FN</th>
-                    <th className="py-2.5 px-4">Precision</th>
-                    <th className="py-2.5 px-4">Recall</th>
-                    <th className="py-2.5 px-4">F1-Score</th>
-                    <th className="py-2.5 px-4 text-right">Support</th>
+                    <th className="py-2.5 px-4">Entity Category</th>
+                    <th className="py-2.5 px-3 text-center">Hits (Right)</th>
+                    <th className="py-2.5 px-3 text-center">False Alarms</th>
+                    <th className="py-2.5 px-3 text-center">Missed Words</th>
+                    <th className="py-2.5 px-4">Trust Score (Precision)</th>
+                    <th className="py-2.5 px-4">Catch Rate (Recall)</th>
+                    <th className="py-2.5 px-4">Overall Score (F1)</th>
+                    <th className="py-2.5 px-4 text-right">Total in Text</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[rgba(26,26,24,0.06)] text-xs bg-white">
@@ -625,13 +540,13 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                           {cm.fn}
                         </td>
                         <td className="py-2.5 px-4 tabular-nums">
-                          {cm.precision.toFixed(3)}
+                          {(cm.precision * 100).toFixed(1)}%
                         </td>
                         <td className="py-2.5 px-4 tabular-nums">
-                          {cm.recall.toFixed(3)}
+                          {(cm.recall * 100).toFixed(1)}%
                         </td>
                         <td className="py-2.5 px-4 tabular-nums font-medium text-[#1a1a18]">
-                          {cm.f1.toFixed(3)}
+                          {(cm.f1 * 100).toFixed(1)}%
                         </td>
                         <td className="py-2.5 px-4 text-right tabular-nums text-[#1a1a18]/60">
                           {cm.support}
@@ -641,18 +556,18 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                   })}
 
                   <tr className="bg-[#f7f7f5] border-t border-[rgba(26,26,24,0.08)] font-medium">
-                    <td className="py-3 px-4 text-[#1a1a18] uppercase">Macro Avg</td>
+                    <td className="py-3 px-4 text-[#1a1a18] uppercase">Average Across All Categories</td>
                     <td className="py-3 px-3 text-center text-[#1a1a18]/50">—</td>
                     <td className="py-3 px-3 text-center text-[#1a1a18]/50">—</td>
                     <td className="py-3 px-3 text-center text-[#1a1a18]/50">—</td>
                     <td className="py-3 px-4 font-medium text-[#1a1a18]">
-                      {activeReport.macroAvg.precision.toFixed(3)}
+                      {(activeReport.macroAvg.precision * 100).toFixed(1)}%
                     </td>
                     <td className="py-3 px-4 font-medium text-[#1a1a18]">
-                      {activeReport.macroAvg.recall.toFixed(3)}
+                      {(activeReport.macroAvg.recall * 100).toFixed(1)}%
                     </td>
                     <td className="py-3 px-4 font-medium text-[#d97706]">
-                      {activeReport.macroAvg.f1.toFixed(3)}
+                      {(activeReport.macroAvg.f1 * 100).toFixed(1)}%
                     </td>
                     <td className="py-3 px-4 text-right text-[#1a1a18]">
                       {activeReport.macroAvg.support}
@@ -660,6 +575,14 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            {/* Friendly Tip Callout */}
+            <div className="p-3 bg-[#fafaf8] border border-[rgba(26,26,24,0.06)] rounded-lg text-xs text-[#1a1a18]/70 flex items-start gap-2">
+              <span className="text-base">💡</span>
+              <p className="leading-relaxed">
+                <b>Friendly Tip:</b> Notice that for Dates, Money, and Numbers, the older basic BERT model scored 0% because it was never trained to recognize numbers. spaCy scores near 100% because it was taught all 18 standard categories!
+              </p>
             </div>
           </div>
         </div>
@@ -674,16 +597,14 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               <div className="flex items-center justify-between pb-2 border-b border-[rgba(26,26,24,0.08)]">
                 <h4 className="font-serif text-sm font-medium text-[#1a1a18] flex items-center gap-2">
                   <XCircle className="w-4 h-4 text-[#d97706]" />
-                  False Positives ({isCorrectionActive ? '0 (All 33 Corrected)' : `${NOTEBOOK_DATA.bertFalsePositives.length} recorded`})
+                  False Alarms (Words the basic AI wrongly flagged) ({NOTEBOOK_DATA.bertFalsePositives.length} found)
                 </h4>
                 <span className="badge">
-                  FP = {isCorrectionActive ? 0 : 33}
+                  FP = {NOTEBOOK_DATA.bertFalsePositives.length}
                 </span>
               </div>
               <p className="text-xs font-mono text-[#1a1a18]/60">
-                {isCorrectionActive
-                  ? 'All 33 spurious WordPiece fragments have been eliminated via whole-word subword alignment.'
-                  : 'Predicted by baseline BERT but absent or labeled differently in ground truth:'}
+                Words the basic model flagged as entities, but in reality they were normal words or broken syllables:
               </p>
 
               <div className="max-h-96 overflow-y-auto space-y-2 pr-1">
@@ -696,12 +617,12 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                       <span className="font-medium text-[#1a1a18] font-mono">
                         "{item.text}"
                       </span>
-                      <span className={`badge ${isCorrectionActive ? 'text-emerald-700 bg-emerald-50' : 'badge-accent'}`}>
-                        {isCorrectionActive ? '✓ Corrected' : item.label}
+                      <span className="badge badge-accent">
+                        {item.label}
                       </span>
                     </div>
                     <span className="text-[11px] font-mono text-[#1a1a18]/60 mt-1">
-                      {isCorrectionActive ? 'Resolved: Recombined with main token; spurious split removed.' : item.reason}
+                      {item.reason}
                     </span>
                   </div>
                 ))}
@@ -713,16 +634,14 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               <div className="flex items-center justify-between pb-2 border-b border-[rgba(26,26,24,0.08)]">
                 <h4 className="font-serif text-sm font-medium text-[#1a1a18] flex items-center gap-2">
                   <AlertOctagon className="w-4 h-4 text-[#1a1a18]" />
-                  False Negatives ({isCorrectionActive ? '0 (All 34 Corrected)' : `${NOTEBOOK_DATA.bertFalseNegatives.length} recorded`})
+                  Missed Words (Things the basic AI overlooked) ({NOTEBOOK_DATA.bertFalseNegatives.length} found)
                 </h4>
                 <span className="badge">
-                  FN = {isCorrectionActive ? 0 : 34}
+                  FN = {NOTEBOOK_DATA.bertFalseNegatives.length}
                 </span>
               </div>
               <p className="text-xs font-mono text-[#1a1a18]/60">
-                {isCorrectionActive
-                  ? 'All 34 missing entities have been restored via OntoNotes 5.0 18-class schema mapping.'
-                  : 'Present in ground truth but uncaptured by 4-class CoNLL baseline BERT:'}
+                Real names and numbers present in the stories, but the basic model walked past without seeing them:
               </p>
 
               <div className="max-h-96 overflow-y-auto space-y-2 pr-1">
@@ -735,12 +654,12 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                       <span className="font-medium text-[#1a1a18] font-mono">
                         "{item.text}"
                       </span>
-                      <span className={`badge ${isCorrectionActive ? 'text-emerald-700 bg-emerald-50' : ''}`}>
-                        {isCorrectionActive ? '✓ Restored' : item.label}
+                      <span className="badge">
+                        {item.label}
                       </span>
                     </div>
                     <span className="text-[11px] font-mono text-[#1a1a18]/60 mt-1">
-                      {isCorrectionActive ? 'Resolved: OntoNotes multi-class classifier successfully recognizes entity.' : item.reason}
+                      {item.reason}
                     </span>
                   </div>
                 ))}
@@ -756,10 +675,15 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Confidence Table */}
             <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
-              <h4 className="font-serif text-sm font-medium text-[#1a1a18] flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#d97706]" />
-                Average BERT Confidence by Entity Type
-              </h4>
+              <div>
+                <h4 className="font-serif text-sm font-medium text-[#1a1a18] flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-[#d97706]" />
+                  Average Certainty by Category
+                </h4>
+                <p className="text-xs text-[#1a1a18]/60 mt-0.5">
+                  How confident the AI feels when guessing each kind of entity.
+                </p>
+              </div>
 
               <div className="space-y-3.5">
                 {NOTEBOOK_DATA.bertConfidenceByType.map(c => {
@@ -769,7 +693,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                       <div className="bar-label">
                         <span className="text-xs font-mono text-[#1a1a18]">{c.label}</span>
                         <span className="text-xs font-mono text-[#d97706] tabular-nums">
-                          {(c.confidence * 100).toFixed(2)}% ({c.confidence.toFixed(4)})
+                          {(c.confidence * 100).toFixed(1)}% certainty
                         </span>
                       </div>
                       <div className="bar-track">
@@ -786,14 +710,19 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
 
             {/* High vs Low Confidence Samples */}
             <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
-              <h4 className="font-serif text-sm font-medium text-[#1a1a18]">
-                Sample High & Low Confidence Tokens
-              </h4>
+              <div>
+                <h4 className="font-serif text-sm font-medium text-[#1a1a18]">
+                  Words the AI Was Most & Least Sure About
+                </h4>
+                <p className="text-xs text-[#1a1a18]/60 mt-0.5">
+                  Famous names get high certainty, while chopped-up syllables get low certainty.
+                </p>
+              </div>
 
               <div className="space-y-3 text-xs font-mono">
                 <div>
-                  <div className="label text-[10px] text-[#d97706] font-medium mb-1.5">
-                    Highest Confidence Predictions (Score &gt; 0.999):
+                  <div className="label text-[10px] text-emerald-800 font-medium mb-1.5">
+                    Highest Certainty Guesses (&gt;99% sure):
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {NOTEBOOK_DATA.highConfidenceSamples.slice(0, 5).map((s, idx) => (
@@ -801,15 +730,15 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                         key={idx}
                         className="badge"
                       >
-                        {s.text} ({s.label} · {(s.score * 100).toFixed(2)}%)
+                        {s.text} ({s.label} · {(s.score * 100).toFixed(1)}% sure)
                       </span>
                     ))}
                   </div>
                 </div>
 
                 <div className="pt-2">
-                  <div className="label text-[10px] text-[#1a1a18]/60 font-medium mb-1.5">
-                    Lowest Confidence Tokens (Ambiguous / Subword Pieces):
+                  <div className="label text-[10px] text-[#d97706] font-medium mb-1.5">
+                    Lowest Certainty Words (Unusual or broken syllables):
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {NOTEBOOK_DATA.lowConfidenceSamples.slice(0, 5).map((s, idx) => (
@@ -817,7 +746,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
                         key={idx}
                         className="badge text-[#d97706] border-[#d97706]/20 bg-[#d97706]/5"
                       >
-                        {s.text} ({s.label} · {(s.score * 100).toFixed(1)}%)
+                        {s.text} ({s.label} · {(s.score * 100).toFixed(1)}% sure)
                       </span>
                     ))}
                   </div>
@@ -834,17 +763,17 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
           <div>
             <h3 className="font-serif text-base font-medium text-[#1a1a18] flex items-center gap-2">
               <FileCheck className="w-4 h-4 text-[#d97706]" />
-              20 Ground-Truth Benchmark Articles (NER_Annotation_Workbook.csv)
+              The 20 Real News Stories Used to Grade the AI
             </h3>
             <p className="text-xs font-mono text-[#1a1a18]/60 mt-0.5">
-              Evaluated dataset created in Section 11-13 of notebook.
+              Human editors read these 20 articles and carefully marked every person, company, date, and place to establish 100% honest answers.
             </p>
           </div>
           <input
             type="text"
             value={benchmarkSearch}
             onChange={e => setBenchmarkSearch(e.target.value)}
-            placeholder="Search gold standard..."
+            placeholder="Search stories..."
             className="text-xs font-mono border border-[rgba(26,26,24,0.12)] rounded-lg px-3 py-1.5 w-60 bg-white focus:outline-none focus:border-[#d97706]"
           />
         </div>
@@ -853,10 +782,10 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
           <table className="w-full text-left text-xs font-mono">
             <thead className="bg-[#f7f7f5] border-b border-[rgba(26,26,24,0.08)] text-[#1a1a18]/60 uppercase text-[11px] font-medium">
               <tr>
-                <th className="py-2.5 px-3">ID</th>
+                <th className="py-2.5 px-3">Story #</th>
                 <th className="py-2.5 px-3">Category</th>
-                <th className="py-2.5 px-3">Verified Ground-Truth Entities</th>
-                <th className="py-2.5 px-3">Annotation Text Snippet</th>
+                <th className="py-2.5 px-3">Real Verified Entities</th>
+                <th className="py-2.5 px-3">Story Excerpt</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(26,26,24,0.06)] bg-white">

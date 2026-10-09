@@ -94,13 +94,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         <div>
           <div className="label text-[#d97706] font-medium tracking-widest flex items-center gap-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-[#d97706] animate-pulse" />
-            Active NLP Benchmark Intelligence
+            News Intelligence & Model Guide
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-normal text-[#1a1a18] tracking-tight">
-            NER Model & Corpus Performance Dashboard
+            Explore How AI Reads The News
           </h1>
           <p className="text-xs sm:text-sm text-[#1a1a18]/65 font-sans mt-1">
-            Real-time quantitative evaluation of spaCy vs BERT architectures on {totalCorpus.toLocaleString()} multi-domain news articles and gold-standard ground truth.
+            See how different AI models identify people, places, companies, dates, and money across {totalCorpus.toLocaleString()} news articles — and test your own stories anytime.
           </p>
         </div>
 

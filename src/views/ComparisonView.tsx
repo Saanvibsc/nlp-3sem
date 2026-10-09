@@ -55,13 +55,13 @@ export const ComparisonView: React.FC = () => {
       <div className="max-w-3xl">
         <span className="label !opacity-100 text-[#d97706] flex items-center gap-1.5 font-medium mb-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#d97706]" />
-          Model Architecture Evaluation & Head-to-Head
+          Model Head-to-Head Test
         </span>
         <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-[#1a1a18] leading-[1.05] tracking-tight mb-2">
-          spaCy vs BERT Comparison
+          Compare spaCy vs BERT: Which AI Is Better?
         </h1>
         <p className="font-serif text-base sm:text-lg text-[#1a1a18]/70 max-w-2xl leading-relaxed mb-4">
-          Direct comparative analysis between transition-based CNN parser (spaCy) and bidirectional transformer (BERT).
+          A simple side-by-side test showing how two different AI models read the same news story. See who is faster, who catches more names, and who makes fewer mistakes.
         </p>
       </div>
 
