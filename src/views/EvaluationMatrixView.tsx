@@ -8,7 +8,6 @@ import {
 } from '../services/nlpEngine';
 import { MetricCard } from '../components/MetricCard';
 import {
-  Grid3X3,
   Award,
   BarChart3,
   AlertOctagon,
@@ -27,11 +26,6 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
   groundTruthData,
 }) => {
   const [selectedEngine, setSelectedEngine] = useState<'spaCy' | 'BERT' | 'Trained BERT' | 'AC Automaton'>('spaCy');
-  const [selectedCell, setSelectedCell] = useState<{
-    actual: string;
-    pred: string;
-    count: number;
-  } | null>(null);
   const [benchmarkSearch, setBenchmarkSearch] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'matrix' | 'errors' | 'confidence'>('matrix');
 
@@ -68,8 +62,6 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
     );
   }, [groundTruthData, benchmarkSearch]);
 
-  const matrixClasses = activeReport.classes;
-
   return (
     <div className="space-y-8 pt-2 pb-12">
       {/* View Header */}
@@ -80,7 +72,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
             Easy-to-Understand AI Accuracy Check
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-[#1a1a18] leading-[1.05] tracking-tight mb-2">
-            Confusion Matrix: What the AI Got Right & Where It Got Mixed Up
+            Model Performance & Category Report Card
           </h1>
           <p className="font-serif text-base sm:text-lg text-[#1a1a18]/70 max-w-2xl leading-relaxed mb-4">
             Think of this page like an AI report card. It shows you exactly what names and dates the AI found, where it mistook one thing for another, and what it missed completely. No confusing math jargon.
@@ -90,10 +82,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
         {/* Engine Switcher */}
         <div className="flex border border-[rgba(26,26,24,0.08)] rounded-lg bg-[#f7f7f5] p-1 shrink-0 self-start md:self-auto gap-1">
           <button
-            onClick={() => {
-              setSelectedEngine('spaCy');
-              setSelectedCell(null);
-            }}
+            onClick={() => setSelectedEngine('spaCy')}
             className={`px-3 py-1.5 font-mono text-xs rounded transition-all cursor-pointer ${
               selectedEngine === 'spaCy'
                 ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
@@ -103,10 +92,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
             spaCy (Fast & Accurate ~98%)
           </button>
           <button
-            onClick={() => {
-              setSelectedEngine('BERT');
-              setSelectedCell(null);
-            }}
+            onClick={() => setSelectedEngine('BERT')}
             className={`px-3 py-1.5 font-mono text-xs rounded transition-all cursor-pointer ${
               selectedEngine === 'BERT'
                 ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
@@ -116,10 +102,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
             BERT (Older Basic Model ~26%)
           </button>
           <button
-            onClick={() => {
-              setSelectedEngine('Trained BERT');
-              setSelectedCell(null);
-            }}
+            onClick={() => setSelectedEngine('Trained BERT')}
             className={`px-3 py-1.5 font-mono text-xs rounded transition-all cursor-pointer ${
               selectedEngine === 'Trained BERT'
                 ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
@@ -129,10 +112,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
             Trained BERT
           </button>
           <button
-            onClick={() => {
-              setSelectedEngine('AC Automaton');
-              setSelectedCell(null);
-            }}
+            onClick={() => setSelectedEngine('AC Automaton')}
             className={`px-3 py-1.5 font-mono text-xs rounded transition-all cursor-pointer ${
               selectedEngine === 'AC Automaton'
                 ? 'bg-white text-[#1a1a18] font-medium shadow-xs'
@@ -186,11 +166,11 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
 
           <div className="p-3 bg-white border border-[rgba(26,26,24,0.06)] rounded-lg space-y-1">
             <div className="flex items-center gap-1.5 font-semibold text-[#1a1a18]">
-              <Grid3X3 className="w-3.5 h-3.5 text-[#d97706]" />
-              <span>How the Table Works</span>
+              <Award className="w-3.5 h-3.5 text-[#d97706]" />
+              <span>Overall Grade (F1 Score)</span>
             </div>
             <p className="text-[#1a1a18]/70 leading-relaxed text-[11px]">
-              Look down the left for what was real. Look across the top for what the AI guessed. The center diagonal shows 100% correct answers!
+              Combines trust and catch rate into one balanced percentage score so you know the model's true accuracy.
             </p>
           </div>
         </div>
@@ -332,7 +312,7 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
               : 'border-transparent text-[#1a1a18]/60 hover:text-[#1a1a18]'
           }`}
         >
-          <Grid3X3 className="w-3.5 h-3.5" /> 1. The Confusion Grid (Right & Wrong Guesses)
+          <Award className="w-3.5 h-3.5" /> 1. Category Report Card ({selectedEngine})
         </button>
         <button
           onClick={() => setActiveTab('errors')}
@@ -356,138 +336,9 @@ export const EvaluationMatrixView: React.FC<EvaluationMatrixViewProps> = ({
         </button>
       </div>
 
-      {/* TAB 1: Confusion Matrix & Classification Report */}
+      {/* TAB 1: Category Report Card & Classification Metrics */}
       {activeTab === 'matrix' && (
         <div className="space-y-6">
-          {/* Confusion Matrix Heatmap */}
-          <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[rgba(26,26,24,0.08)]">
-              <div>
-                <h3 className="font-serif text-base font-medium text-[#1a1a18] flex items-center gap-2">
-                  <Grid3X3 className="w-4 h-4 text-[#d97706]" />
-                  The Confusion Grid ({selectedEngine})
-                </h3>
-                <p className="text-xs text-[#1a1a18]/70 font-sans mt-0.5 max-w-2xl">
-                  Look down the left column for the <b>REAL answer</b>. Look across the top for what the <b>AI GUESSED</b>. Numbers in dark boxes down the diagonal are 100% correct hits. Orange boxes show where the AI got mixed up. Click any box to inspect or fix it!
-                </p>
-              </div>
-              <div className="flex items-center gap-4 text-xs font-mono shrink-0">
-                <span className="flex items-center gap-1.5 text-[#1a1a18]">
-                  <span className="w-3 h-3 bg-[#1a1a18] rounded-xs"></span> ✓ Right Guess (Hit)
-                </span>
-                <span className="flex items-center gap-1.5 text-[#1a1a18]">
-                  <span className="w-3 h-3 bg-[#d97706]/20 border border-[#d97706]/40 rounded-xs"></span> ⚠ Mix-Up (Mistake)
-                </span>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto border border-[rgba(26,26,24,0.08)] rounded-lg">
-              <table className="w-full text-center text-xs font-mono border-collapse">
-                <thead>
-                  <tr className="bg-[#f7f7f5] border-b border-[rgba(26,26,24,0.08)] text-[#1a1a18]/60 uppercase text-[11px] font-medium">
-                    <th className="py-2.5 px-3 text-left w-36">
-                      Real Word \ AI Guess
-                    </th>
-                    {matrixClasses.map(cls => (
-                      <th key={cls} className="py-2.5 px-2 font-medium whitespace-nowrap">
-                        {cls}
-                      </th>
-                    ))}
-                    <th className="py-2.5 px-3 bg-[#ebebe8] text-[#1a1a18] font-medium">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[rgba(26,26,24,0.06)] bg-white">
-                  {matrixClasses.map(actual => {
-                    const rowTotal = Object.values(activeReport.matrix[actual] || {}).reduce(
-                      (a, b) => a + b,
-                      0
-                    );
-
-                    return (
-                      <tr key={actual} className="hover:bg-[#f7f7f5]/40">
-                        <td className="py-2.5 px-3 text-left font-medium text-[#1a1a18] bg-[#f7f7f5]/50 whitespace-nowrap">
-                          {actual}
-                        </td>
-                        {matrixClasses.map(pred => {
-                          const count = activeReport.matrix[actual]?.[pred] || 0;
-                          const isDiagonal = actual === pred && !actual.includes('O');
-                          const isError = count > 0 && !isDiagonal;
-                          const isSelected =
-                            selectedCell?.actual === actual && selectedCell?.pred === pred;
-
-                          let cellBg = 'bg-white text-[#1a1a18]/20';
-                          if (count > 0) {
-                            if (isDiagonal) {
-                              cellBg =
-                                count > 15
-                                  ? 'bg-[#1a1a18] text-white font-medium'
-                                  : count > 5
-                                  ? 'bg-[#1a1a18]/80 text-white'
-                                  : 'bg-[#1a1a18]/10 text-[#1a1a18] font-medium';
-                            } else {
-                              cellBg = 'bg-[#d97706]/15 text-[#d97706] font-medium border border-[#d97706]/30 cursor-pointer';
-                            }
-                          }
-
-                          return (
-                            <td
-                              key={pred}
-                              onClick={() => setSelectedCell({ actual, pred, count })}
-                              className={`py-2 px-2 transition-all tabular-nums ${cellBg} ${
-                                isSelected
-                                  ? 'ring-2 ring-[#d97706] font-medium z-10'
-                                  : isError ? 'hover:opacity-80' : 'hover:opacity-90'
-                              }`}
-                            >
-                              {count}
-                            </td>
-                          );
-                        })}
-                        <td className="py-2.5 px-3 font-mono font-medium text-[#1a1a18] bg-[#f7f7f5]/50 tabular-nums">
-                          {rowTotal}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* CELL INSPECTION DRAWER */}
-            {selectedCell && (
-              <div className="bg-[#f7f7f5] border border-[rgba(26,26,24,0.08)] rounded-lg p-4 text-xs font-mono flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-[#1a1a18] uppercase">Selected Box:</span>
-                    <span>Real Word: <b className="text-[#d97706]">{selectedCell.actual}</b></span>
-                    <span>→ AI Guessed: <b className="text-[#1a1a18]">{selectedCell.pred}</b></span>
-                    <span>(<b>{selectedCell.count}</b> words)</span>
-                  </div>
-                  {selectedCell.actual !== selectedCell.pred && selectedCell.count > 0 ? (
-                    <div className="text-[11px] text-[#1a1a18]/70 font-sans">
-                      The AI got mixed up here: words that were actually <b>{selectedCell.actual}</b> were labeled as <b>{selectedCell.pred}</b>.
-                    </div>
-                  ) : (
-                    <div className="text-[11px] text-emerald-800 font-sans font-medium">
-                      ✓ Correct match: {selectedCell.count} entities accurately classified as {selectedCell.actual}.
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => setSelectedCell(null)}
-                    className="btn btn-secondary !py-1.5 !px-3 text-xs cursor-pointer"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Classification Report Table */}
           <div className="card p-6 bg-white border border-[rgba(26,26,24,0.08)] rounded-xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[rgba(26,26,24,0.08)]">
